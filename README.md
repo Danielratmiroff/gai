@@ -1,0 +1,2 @@
+# gai
+AI for git
