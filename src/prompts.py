@@ -35,7 +35,7 @@ class Prompts:
             Do not include irrelevant information or personal opinions
 
             Formatting:
-            Present the commit messages in a numbered list
+            Present the commit messages as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
             _MUST_ Do not include any additional text outside the commit messages
 
             Input:
