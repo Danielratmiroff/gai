@@ -15,7 +15,7 @@ class Gitlab_api():
         self.url = config['gitlab_url']
         self.project = config['gitlab_project']
         self.target_branch = config['target_branch']
-        self.assignee = config['gitlab_userid']
+        self.assignee = config['gitlab_assignee_id']
         self.source_branch = self.get_current_branch()
 
     def get_api_key(self):
@@ -32,11 +32,11 @@ class Gitlab_api():
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         return result.stdout.strip()
 
-    def create_merge_request(self, description: str) -> None:
+    def create_merge_request(self, title: str, description: str) -> None:
         data = {
             "source_branch": self.source_branch,
             "target_branch": self.target_branch,
-            "title": "My Merge Request",
+            "title": title,
             "description": description,
             "assignee_id": self.assignee
         }
