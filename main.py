@@ -54,7 +54,7 @@ class Main:
         # print(build_prompt)
         print(f"token count: {len(build_prompt.split())}")
 
-        while commit_message is not OPTIONS["TRY_AGAIN"]:
+        while commit_message is OPTIONS["TRY_AGAIN"] or commit_message == "":
             response = self.groq_chat_client.get_chat_completion(build_prompt)
             commit_message = self.DisplayChoices.run(response)
             print(commit_message)
