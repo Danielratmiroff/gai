@@ -1,29 +1,27 @@
 import yaml
 import os
-import yaml
 
-from groq import Groq
-
-from api.groq_api import GroqClient
-from src.display_choices import OPTIONS, DisplayChoices
-from src.commit import Commit
-from src.prompts import Prompts
+from api import GroqClient, Gitlab_api
+from src import OPTIONS, DisplayChoices, Commit, Prompts, Merge_requests
 
 
 class Main:
     model = None
     temperature = None
     max_tokens = None
-    api_key = None
+    target_branch = None
 
     def __init__(self):
         self.Commit = Commit()
+        self.Merge_requests = Merge_requests()
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
+        self.Gitlab = Gitlab_api()
 
         self.load_config()
         self.init_groq_client()
-        self.run()
+        self.run_merge_request()
+        # self.run()
 
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(
@@ -36,7 +34,9 @@ class Main:
         self.model = config['model']
         self.temperature = config['temperature']
         self.max_tokens = config['max_tokens']
+        self.target_branch = config['target_branch']
 
+    # migrate this to groq_api.py
     def get_api_key(self):
         api_key = os.environ.get("GROQ_API_KEY")
 
@@ -44,7 +44,12 @@ class Main:
             raise ValueError(
                 "GROQ_API_KEY is not set, please set it in your environment variables")
 
-        return self.api_key
+        return api_key
+
+    def run_merge_request(self):
+        description = self.Merge_requests.create_description(
+            self.target_branch)
+        self.Gitlab.create_merge_request(description)
 
     def run(self):
         git_diffs = self.Commit.get_diffs()

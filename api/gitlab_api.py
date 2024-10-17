@@ -7,7 +7,6 @@ import subprocess
 class Gitlab_api():
     def __init__(self):
         self.load_config()
-        self.create_merge_request()
 
     def load_config(self):
         with open("config.yaml", "r") as file:
@@ -16,37 +15,41 @@ class Gitlab_api():
         self.url = config['gitlab_url']
         self.project = config['gitlab_project']
         self.target_branch = config['target_branch']
-
-        self.private_token = os.environ.get("GITLAB_PRIVATE_TOKEN")
-        if not self.private_token:
-            raise ValueError(
-                "GITLAB_PRIVATE_TOKEN environment variable is not set")
+        self.assignee = config['gitlab_userid']
 
         self.source_branch = self.get_current_branch()
 
-    def get_current_branch(self):
+    def get_api_key(self):
+        api_key = os.environ.get("GITLAB_PRIVATE_TOKEN")
+
+        if api_key is None:
+            raise ValueError(
+                "GITLAB_PRIVATE_TOKEN is not set, please set it in your environment variables")
+
+        return api_key
+
+    def get_current_branch(self) -> str:
         result = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         return result.stdout.strip()
 
-    def create_merge_request(self):
+    def create_merge_request(self, description: str) -> None:
         data = {
             "source_branch": self.source_branch,
             "target_branch": self.target_branch,
             "title": "My Merge Request",
-            "description": "This is a dummy merge request created via API.",
+            "description": description,
+            "assignee_id": self.assignee
         }
 
-        # Make the request to create the merge request
         response = requests.post(
             f"{self.url}/api/v4/projects/{self.project}/merge_requests",
-            headers={"PRIVATE-TOKEN": self.private_token},
+            headers={"PRIVATE-TOKEN": self.get_api_key()},
             json=data
         )
 
-        # Check the response
         if response.status_code == 201:
-            print("Merge request created successfully:", response.json())
+            print("Merge request created successfully:", response.status_code)
         else:
             print(f"Failed to create merge request: {response.status_code}")
             print(f"Response text: {response.text}")

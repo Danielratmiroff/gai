@@ -1,6 +1,3 @@
-import os
-import yaml
-
 from groq import Groq
 
 
