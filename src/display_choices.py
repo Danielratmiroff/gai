@@ -8,6 +8,7 @@ OPTIONS: Dict[str, str] = {
 }
 
 
+# TODO: rename this class to avoid cammel case
 class DisplayChoices:
     def __init__(self):
         pass
@@ -34,7 +35,9 @@ class DisplayChoices:
         choices = self.parse_response(items)
 
         selected_item = self.display_choices(
-            choices, "Choose a commit message:")
+            items=choices
+            # title="Choose an option:"
+        )
 
         print(f"\nYou selected: {selected_item}")
         return selected_item
