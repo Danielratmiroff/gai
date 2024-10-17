@@ -1,16 +1,29 @@
+import ast
 from pick import pick
-import curses
 
 
 class DisplayChoices:
-    def display_choices(self, items, title="Please select an option:"):
+    def __init__(self):
+        pass
+
+    def parse_response(self, response: str) -> list:
+        try:
+            return ast.literal_eval(response)
+        except (ValueError, SyntaxError) as e:
+            raise ValueError(
+                "\n\nFailed to get list of choices, did you stage your changes?") from e
+
+    def display_choices(self, items: str, title="Please select an option:"):
         option, index = pick(items, title, indicator='*',
                              multiselect=False, min_selection_count=1)
         return option
 
-    def run(self, items=None):
-        if items is None:
-            raise ValueError("Failed to provide choices to display")
+    def run(self, items: list) -> str:
+        selected_item = None
+        choices = self.parse_response(items)
 
-        selected_item = self.select_item(items, "Choose a commit message:")
-        print(f"\nYou selected: {selected_item}")
+        selected_item = self.display_choices(
+            choices, "Choose a commit message:")
+
+        # print(f"\nYou selected: {selected_item}")
+        return selected_item
