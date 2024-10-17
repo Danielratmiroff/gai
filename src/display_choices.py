@@ -22,8 +22,11 @@ class DisplayChoices:
     def display_choices(self, items: list, title="Please select an option:"):
         items_refined = items + [OPTIONS["TRY_AGAIN"], OPTIONS["EXIT"]]
 
-        option, _ = pick(items_refined, title, indicator='*',
-                         multiselect=False, min_selection_count=1)
+        option, _ = pick(items_refined,
+                         title,
+                         indicator='*',
+                         multiselect=False,
+                         min_selection_count=1)
         return option
 
     def run(self, items: list) -> str:

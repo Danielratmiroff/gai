@@ -47,9 +47,10 @@ class Main:
         return self.api_key
 
     def run(self):
-        commit_message = ""
         git_diffs = self.Commit.get_diffs()
         build_prompt = self.Prompt.build_commit_message_prompt(git_diffs)
+
+        commit_message = ""
 
         # print(build_prompt)
         print(f"token count: {len(build_prompt.split())}")
