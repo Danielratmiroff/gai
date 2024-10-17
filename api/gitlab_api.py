@@ -16,7 +16,6 @@ class Gitlab_api():
         self.project = config['gitlab_project']
         self.target_branch = config['target_branch']
         self.assignee = config['gitlab_userid']
-
         self.source_branch = self.get_current_branch()
 
     def get_api_key(self):

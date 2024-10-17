@@ -1,7 +1,7 @@
 import yaml
 import os
 
-from api import GroqClient, Gitlab_api
+from api import GroqClient, Gitlab_api, Github_api
 from src import OPTIONS, DisplayChoices, Commit, Prompts, Merge_requests
 
 
@@ -17,11 +17,13 @@ class Main:
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
         self.Gitlab = Gitlab_api()
+        self.Github = Github_api()
 
         self.load_config()
         self.init_groq_client()
-        self.run_merge_request()
-        # self.run()
+
+        # self.run_merge_request()
+        self.run()
 
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(
@@ -46,6 +48,7 @@ class Main:
 
         return api_key
 
+    # make this dynamic (gitlab/github)
     def run_merge_request(self):
         description = self.Merge_requests.create_description(
             self.target_branch)
@@ -57,7 +60,7 @@ class Main:
 
         commit_message = ""
 
-        print(build_prompt)
+        # print(build_prompt)
         print(f"token count: {len(build_prompt.split())}")
 
         while commit_message is OPTIONS["TRY_AGAIN"] or commit_message == "":
