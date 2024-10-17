@@ -5,7 +5,7 @@ import yaml
 from groq import Groq
 
 from api.groq_api import GroqClient
-from src.display_choices import DisplayChoices
+from src.display_choices import OPTIONS, DisplayChoices
 from src.commit import Commit
 from src.prompts import Prompts
 
@@ -47,15 +47,21 @@ class Main:
         return self.api_key
 
     def run(self):
+        commit_message = ""
         git_diffs = self.Commit.get_diffs()
         build_prompt = self.Prompt.build_commit_message_prompt(git_diffs)
 
         # print(build_prompt)
         print(f"token count: {len(build_prompt.split())}")
 
-        response = self.groq_chat_client.get_chat_completion(build_prompt)
+        while commit_message is not OPTIONS["TRY_AGAIN"]:
+            response = self.groq_chat_client.get_chat_completion(build_prompt)
+            commit_message = self.DisplayChoices.run(response)
+            print(commit_message)
 
-        commit_message = self.DisplayChoices.run(response)
+        if commit_message is OPTIONS["EXIT"]:
+            print("Exiting...")
+            return
 
         self.Commit.commit_changes(commit_message)
 
