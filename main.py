@@ -76,7 +76,7 @@ class Main:
 
         self.Github.create_pull_request(
             title=title,
-            description=description)
+            body=description)
 
         # self.Gitlab.create_merge_request(
         #     title=title,

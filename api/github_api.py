@@ -56,7 +56,9 @@ class Github_api():
             print(f"Pull request URL: {pr_info['html_url']}")
         else:
             print(f"Failed to create pull request: {response.status_code}")
-            print(f"Response: {response.json()}")
+            json = response.json()
+            error_message = json['errors'][0]['message']
+            print(f"Error message: {error_message}")
 
 
 # TODO: remove this
