@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 
 class Commit:
@@ -9,25 +10,18 @@ class Commit:
         self.show_committed_cmd = "git diff --cached --name-only"
         pass
 
-    def read_diff_file(self, diff_file_path: str) -> str:
-        with open(diff_file_path, "r") as file:
-            return file.read()
-
-    def clean_file(self, diff_file_path: str):
-        if os.path.exists(diff_file_path):
-            os.remove(diff_file_path)
-
     def get_diffs(self) -> str:
-        # We store the diff in a file to avoid printing it to the console
-        diff_file_path = os.path.join(os.getcwd(), "diff.txt")
-        os.system(f"{self.diff_cmd} --output={diff_file_path}")
-
-        self_diff = self.read_diff_file(diff_file_path)
-
-        # Clean up the file
-        self.clean_file(diff_file_path)
-
-        return self_diff
+        try:
+            result = subprocess.run(
+                self.diff_cmd.split(),
+                check=True,
+                capture_output=True,
+                text=True
+            )
+            return result.stdout
+        except subprocess.CalledProcessError as e:
+            print(f"Error running git diff: {e}")
+            return ""
 
     def commit_changes(self, commit_message: str):
         print(f"Committing changes with message: {commit_message}")
