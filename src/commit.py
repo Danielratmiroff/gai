@@ -20,6 +20,8 @@ class Commit:
     def get_diffs(self) -> str:
         # We store the diff in a file to avoid printing it to the console
         diff_file_path = os.path.join(os.getcwd(), "diff.txt")
+
+        # TODO: refactor this to use subprocess
         os.system(f"{self.diff_cmd} --output={diff_file_path}")
 
         self_diff = self.read_diff_file(diff_file_path)

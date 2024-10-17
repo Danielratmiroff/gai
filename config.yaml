@@ -5,3 +5,7 @@ temperature: 1
 max_tokens: 8192
 # model: llama-3.1-70b-versatile
 # max_tokens: 8000
+
+gitlab_url: "https://gitlab.com"
+gitlab_project: "danielratmiroff%2Fgai"
+target_branch: "master"
