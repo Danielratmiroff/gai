@@ -52,7 +52,7 @@ class Main:
 
         commit_message = ""
 
-        # print(build_prompt)
+        print(build_prompt)
         print(f"token count: {len(build_prompt.split())}")
 
         while commit_message is OPTIONS["TRY_AGAIN"] or commit_message == "":
