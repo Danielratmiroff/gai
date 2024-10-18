@@ -17,4 +17,3 @@ target_branch: "master"
 # GitHub config
 github_owner: "Danielratmiroff"
 github_repo: "gai"
-github_target_branch: "master"

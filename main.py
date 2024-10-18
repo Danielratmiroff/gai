@@ -95,9 +95,9 @@ class Main:
     def do_merge_request(self):
         title = ""
 
-        commits = self.Merge_requests.get_commits(self.target_branch)
-
-        print(commits)
+        commits = self.Merge_requests.get_commits(
+            target_branch=self.target_branch,
+            source_branch=self.Gitlab.get_current_branch())  # TODO: fix this func
 
         # migrate prompot logic to merge_request.py
         build_prompt = self.Prompt.build_merge_request_title_prompt(commits)
@@ -116,6 +116,10 @@ class Main:
         if title is OPTIONS["EXIT"]:
             print("Exiting...")
             return
+
+        print("Creating merge request with...")
+        print(f"Title: {title}")
+        print(f"Description: {description}")
 
         if self.platform == "gitlab":
             self.Gitlab.create_merge_request(

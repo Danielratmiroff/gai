@@ -14,7 +14,7 @@ class Github_api():
 
         self.owner = config['github_owner']
         self.repo = config['github_repo']
-        self.target_branch = config['github_target_branch']
+        self.target_branch = config['target_branch']
         self.source_branch = self.get_current_branch()
 
     def get_api_key(self):
@@ -56,8 +56,7 @@ class Github_api():
             print(f"Pull request URL: {pr_info['html_url']}")
         else:
             print(f"Failed to create pull request: {response.status_code}")
-            json = response.json()
-            error_message = json['errors'][0]['message']
+            error_message = response.json()
             print(f"Error message: {error_message}")
 
 
