@@ -27,20 +27,41 @@ class Main:
         self.load_config()
         self.init_groq_client()
 
+        if self.args.command == 'merge':
+            self.do_merge_request()
+        elif self.args.command == 'commit':
+            self.do_commit()
+        else:
+            print("Please specify a command: merge or commit")
+
     def parse_arguments(self):
         parser = argparse.ArgumentParser(
             description="Git-AI (gai): Automate your git messages")
 
-        parser.add_argument('--platform', type=str, default=None,
-                            help='Specify the platform (supported: gitlab or github)')
-        parser.add_argument('--model', type=str,
-                            help='Override the model specified in config')
-        parser.add_argument('--temperature', type=float,
-                            help='Override the temperature specified in config')
-        parser.add_argument('--max-tokens', type=int,
-                            help='Override the max_tokens specified in config')
-        parser.add_argument('--target-branch', type=str,
-                            help='Specify the target branch for merge requests')
+        # Hepler text
+        subparsers = parser.add_subparsers(
+            dest='command', help='Available commands')
+
+        # Commands
+        merge_parser = subparsers.add_parser(
+            'merge', help='Execute an automated merge request')
+
+        commit_parser = subparsers.add_parser(
+            'commit', help='Execute an automated commit')
+
+        # Common arguments
+        for p in [merge_parser, commit_parser]:
+            p.add_argument('--platform', '-p', type=str,
+                           help='Specify the platform (supported: gitlab or github)')
+            p.add_argument('--model', '-mo', type=str,
+                           help='Override the model specified in config')
+            p.add_argument('--temperature', '-t', type=float,
+                           help='Override the temperature specified in config')
+            p.add_argument('--max-tokens', '-mt', type=int,
+                           help='Override the max_tokens specified in config')
+            p.add_argument('--target-branch', '-tb', type=str,
+                           help='Specify the target branch for merge requests')
+
         return parser.parse_args()
 
     def load_config(self):
@@ -131,5 +152,4 @@ class Main:
 
 
 if __name__ == "__main__":
-    # Main().do_merge_request()
-    Main().do_commit()
+    Main()
