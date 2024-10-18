@@ -1,10 +1,12 @@
-# model: llama3-8b-8192
-model: llama-3.2-11b-text-preview
+model: llama-3.1-8b-instant
 # model: llama-3.2-90b-text-preview
-temperature: 1
-max_tokens: 8192
+# max_tokens: 8192
 # model: llama-3.1-70b-versatile
-# max_tokens: 8000
+max_tokens: 8000
+
+temperature: 1
+
+platform: "github"
 
 # Gitlab config
 gitlab_url: "https://gitlab.com"
@@ -15,4 +17,3 @@ target_branch: "master"
 # GitHub config
 github_owner: "Danielratmiroff"
 github_repo: "gai"
-github_target_branch: "master"
