@@ -1,3 +1,4 @@
+import argparse
 import yaml
 import os
 
@@ -10,42 +11,63 @@ class Main:
     temperature = None
     max_tokens = None
     target_branch = None
+    platform = None
 
     def __init__(self):
+        self.args = self.parse_arguments()
+
         self.Commit = Commit()
         self.Merge_requests = Merge_requests()
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
+
         self.Gitlab = Gitlab_api()
         self.Github = Github_api()
 
         self.load_config()
         self.init_groq_client()
 
-        self.do_merge_request()
-        # self.do_commit()
+    def parse_arguments(self):
+        parser = argparse.ArgumentParser(
+            description="Git-AI (gai): Automate your git messages")
 
-    def init_groq_client(self):
-        self.groq_chat_client = GroqClient(
-            self.get_api_key(), self.model, self.temperature, self.max_tokens)
+        parser.add_argument('--platform', type=str, default=None,
+                            help='Specify the platform (supported: gitlab or github)')
+        parser.add_argument('--model', type=str,
+                            help='Override the model specified in config')
+        parser.add_argument('--temperature', type=float,
+                            help='Override the temperature specified in config')
+        parser.add_argument('--max-tokens', type=int,
+                            help='Override the max_tokens specified in config')
+        parser.add_argument('--target-branch', type=str,
+                            help='Specify the target branch for merge requests')
+        return parser.parse_args()
 
     def load_config(self):
         with open("config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
-        self.model = config['model']
-        self.temperature = config['temperature']
-        self.max_tokens = config['max_tokens']
-        self.target_branch = config['target_branch']
+        self.model = self.args.model or config['model']
+        self.temperature = self.args.temperature or config['temperature']
+        self.max_tokens = self.args.max_tokens or config['max_tokens']
+        self.target_branch = self.args.target_branch or config['target_branch']
+        self.platform = self.args.platform or config['platform']
+
+    def init_groq_client(self):
+        self.groq_chat_client = GroqClient(
+            api_key=self.get_api_key(),
+            model=self.model,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens
+
+        )
 
     # migrate this to groq_api.py
     def get_api_key(self):
         api_key = os.environ.get("GROQ_API_KEY")
-
         if api_key is None:
             raise ValueError(
                 "GROQ_API_KEY is not set, please set it in your environment variables")
-
         return api_key
 
     # make this dynamic (gitlab/github)
@@ -74,22 +96,26 @@ class Main:
             print("Exiting...")
             return
 
-        self.Github.create_pull_request(
-            title=title,
-            body=description)
-
-        # self.Gitlab.create_merge_request(
-        #     title=title,
-        #     description=description)
+        if self.platform == "gitlab":
+            self.Gitlab.create_merge_request(
+                title=title,
+                description=description)
+        elif self.platform == "github":
+            self.Github.create_pull_request(
+                title=title,
+                body=description)
+        else:
+            print("Please specify a platform, you can use the --platform flag")
+            return
 
     def do_commit(self):
         git_diffs = self.Commit.get_diffs()
-        build_prompt = self.Prompt.build_commit_message_prompt(git_diffs)
+        build_prompt = self.Prompt.build_commit_message_prompt(
+            git_diffs)
 
         commit_message = ""
-
         # print(build_prompt)
-        print(f"token count: {len(build_prompt.split())}")
+        print(f"Token count: {len(build_prompt.split())}")
 
         while commit_message is OPTIONS["TRY_AGAIN"] or commit_message == "":
             response = self.groq_chat_client.get_chat_completion(build_prompt)
@@ -105,4 +131,5 @@ class Main:
 
 
 if __name__ == "__main__":
-    Main()
+    # Main().do_merge_request()
+    Main().do_commit()
