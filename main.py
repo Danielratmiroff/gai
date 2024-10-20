@@ -48,7 +48,7 @@ class Main:
             'merge', help='Execute an automated merge request')
 
         merge_parser.add_argument(
-            'platform', help='Specify the remote git url (e.g., origin, upstream)')
+            'remote', help='Specify the remote git url (e.g., origin, upstream)')
 
         # Commit
         commit_parser = subparsers.add_parser(
@@ -75,8 +75,6 @@ class Main:
         self.temperature = self.args.temperature or config['temperature']
         self.max_tokens = self.args.max_tokens or config['max_tokens']
         self.target_branch = self.args.target_branch or config['target_branch']
-
-        self.platform = self.args.platform
 
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(
@@ -110,9 +108,12 @@ class Main:
         return self.platform
 
     def get_remote_url(self):
+        if self.args.remote is None:
+            raise ValueError("Please specify a remote URL")
+
         try:
             result = subprocess.run(
-                ["git", "remote", "get-url", self.platform],
+                ["git", "remote", "get-url",  self.args.remote],
                 capture_output=True,
                 text=True,
                 check=True)
@@ -125,6 +126,8 @@ class Main:
 
     def do_merge_request(self):
         title = ""
+        # refactor
+        self.get_platform()
 
         commits = self.Merge_requests.get_commits(
             target_branch=self.target_branch,
@@ -151,8 +154,8 @@ class Main:
         print("Creating merge request with...")
         print(f"Title: {title}")
         print(f"Description: {description}")
-        return
 
+        print("Platform: ", self.platform)
         if self.platform == "gitlab":
             self.Gitlab.create_merge_request(
                 title=title,
