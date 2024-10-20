@@ -6,8 +6,6 @@ max_tokens: 8000
 
 temperature: 1
 
-platform: "github"
-
 # Gitlab config
 gitlab_url: "https://gitlab.com"
 gitlab_project: "danielratmiroff%2Fgai"

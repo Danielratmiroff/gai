@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = ""
+version = "0.1.0"
+description = "A short description of your package"
+authors = [{ name = "Your Name", email = "your.email@example.com" }]
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = ["requests>=2.25.1", "numpy>=1.19.2"]
+keywords = ["example", "package"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/yourusername/your-repo"
+"Documentation" = "https://github.com/yourusername/your-repo#readme"
+"Source" = "https://github.com/yourusername/your-repo"
+"Tracker" = "https://github.com/yourusername/your-repo/issues"

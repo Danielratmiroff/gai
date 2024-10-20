@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 import yaml
 import os
 
@@ -38,21 +39,23 @@ class Main:
         parser = argparse.ArgumentParser(
             description="Git-AI (gai): Automate your git messages")
 
-        # Hepler text
+        # Helper text
         subparsers = parser.add_subparsers(
             dest='command', help='Available commands')
 
-        # Commands
+        # Merge request
         merge_parser = subparsers.add_parser(
             'merge', help='Execute an automated merge request')
 
+        merge_parser.add_argument(
+            'remote', help='Specify the remote git url (e.g., origin, upstream)')
+
+        # Commit
         commit_parser = subparsers.add_parser(
             'commit', help='Execute an automated commit')
 
         # Common arguments
         for p in [merge_parser, commit_parser]:
-            p.add_argument('--platform', '-p', type=str,
-                           help='Specify the platform (supported: gitlab or github)')
             p.add_argument('--model', '-mo', type=str,
                            help='Override the model specified in config')
             p.add_argument('--temperature', '-t', type=float,
@@ -72,7 +75,6 @@ class Main:
         self.temperature = self.args.temperature or config['temperature']
         self.max_tokens = self.args.max_tokens or config['max_tokens']
         self.target_branch = self.args.target_branch or config['target_branch']
-        self.platform = self.args.platform or config['platform']
 
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(
@@ -91,9 +93,41 @@ class Main:
                 "GROQ_API_KEY is not set, please set it in your environment variables")
         return api_key
 
-    # make this dynamic (gitlab/github)
+    def get_platform(self):
+        remote_url = self.get_remote_url()
+
+        if "github.com" in remote_url:
+            self.platform = "github"
+        elif "gitlab.com" in remote_url:
+            self.platform = "gitlab"
+        else:
+            print(
+                "Unable to determine platform from remote URL. Only github and gitlab are supported.")
+            return None
+
+        return self.platform
+
+    def get_remote_url(self):
+        if self.args.remote is None:
+            raise ValueError("Please specify a remote URL")
+
+        try:
+            result = subprocess.run(
+                ["git", "remote", "get-url",  self.args.remote],
+                capture_output=True,
+                text=True,
+                check=True)
+
+            return result.stdout.strip()
+        except subprocess.CalledProcessError:
+            print(
+                "Error: Unable to get remote URL. Make sure you're in a git repository.")
+            return ""
+
     def do_merge_request(self):
         title = ""
+        # refactor
+        self.get_platform()
 
         commits = self.Merge_requests.get_commits(
             target_branch=self.target_branch,
@@ -121,6 +155,7 @@ class Main:
         print(f"Title: {title}")
         print(f"Description: {description}")
 
+        print("Platform: ", self.platform)
         if self.platform == "gitlab":
             self.Gitlab.create_merge_request(
                 title=title,
