@@ -1,14 +1,14 @@
+import os
 from groq import Groq
 
 
 class GroqClient:
     def __init__(self,
-                 api_key: str,
                  model: str,
                  temperature: int,
                  max_tokens: int) -> str:
 
-        self.client = Groq(api_key=api_key)
+        self.client = Groq(api_key=self.get_api_key())
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
@@ -29,3 +29,10 @@ class GroqClient:
             stop=None,
         )
         return chat_completion.choices[0].message.content
+
+    def get_api_key(self):
+        api_key = os.environ.get("GROQ_API_KEY")
+        if api_key is None:
+            raise ValueError(
+                "GROQ_API_KEY is not set, please set it in your environment variables")
+        return api_key
