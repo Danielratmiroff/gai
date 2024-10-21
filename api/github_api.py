@@ -3,19 +3,20 @@ import requests
 import yaml
 import subprocess
 
+from src import Merge_requests
+
 
 class Github_api():
     def __init__(self):
         self.load_config()
+        self.Merge_requests = Merge_requests()
 
     def load_config(self):
         with open("config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
-        self.owner = config['github_owner']
-        self.repo = config['github_repo']
+        self.owner = Merge_requests.get_repo_owner_from_remote_url()
         self.target_branch = config['target_branch']
-        self.source_branch = self.get_current_branch()
 
     def get_api_key(self):
         api_key = os.environ.get("GITHUB_TOKEN")
@@ -34,17 +35,23 @@ class Github_api():
         return result.stdout.strip()
 
     def create_pull_request(self, title: str, body: str) -> None:
+        repo_owner = Merge_requests.get_repo_owner_from_remote_url()
+        repo_name = Merge_requests.get_repo_from_remote_url()
+
+        source_branch = self.get_current_branch()
+        api_key = self.get_api_key()
+
         data = {
             "title": title,
-            "head": self.source_branch,
+            "head": source_branch,
             "base": self.target_branch,
             "body": body
         }
 
         response = requests.post(
-            f"https://api.github.com/repos/{self.owner}/{self.repo}/pulls",
+            f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls",
             headers={
-                "Authorization": f"token {self.get_api_key()}",
+                "Authorization": f"token {api_key}",
                 "Accept": "application/vnd.github.v3+json"
             },
             json=data
@@ -58,8 +65,3 @@ class Github_api():
             print(f"Failed to create pull request: {response.status_code}")
             error_message = response.json()
             print(f"Error message: {error_message}")
-
-
-# TODO: remove this
-if __name__ == "__main__":
-    Github_api()

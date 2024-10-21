@@ -107,23 +107,6 @@ class Main:
 
         return self.platform
 
-    def get_remote_url(self):
-        if self.args.remote is None:
-            raise ValueError("Please specify a remote URL")
-
-        try:
-            result = subprocess.run(
-                ["git", "remote", "get-url",  self.args.remote],
-                capture_output=True,
-                text=True,
-                check=True)
-
-            return result.stdout.strip()
-        except subprocess.CalledProcessError:
-            print(
-                "Error: Unable to get remote URL. Make sure you're in a git repository.")
-            return ""
-
     def do_merge_request(self):
         title = ""
         # refactor
