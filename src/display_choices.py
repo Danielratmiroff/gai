@@ -36,6 +36,7 @@ class DisplayChoices:
         while choice == OPTIONS["TRY_AGAIN"] or choice == "":
             response = ai_client(prompt)
             print(f"response: {response}")
+            # refactor to use something prettier than "run"
             choice = self.run(response)
             print(f"selection {choice}")
 

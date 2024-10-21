@@ -3,8 +3,11 @@ from typing import Dict
 
 
 class Merge_requests():
-    def __init__(self):
-        pass
+    def __init__(
+        self,
+        remote_name: str = "origin"
+    ):
+        self.remote_name = remote_name
 
     def get_repo_owner_from_remote_url(self) -> str:
         remote_url = self.get_remote_url()
@@ -21,10 +24,10 @@ class Merge_requests():
         except IndexError:
             return "Error: Unable to get repo owner."
 
-    def get_remote_url(self) -> str:
+    def get_remote_url(self, remote_name: str) -> str:
         try:
             result = subprocess.run(
-                ["git", "remote", "get-url",  "origin"],
+                ["git", "remote", "get-url", self.remote_name],
                 capture_output=True,
                 text=True,
                 check=True
@@ -37,9 +40,10 @@ class Merge_requests():
     def get_remote_platform(self) -> str:
         remote_url = self.get_remote_url()
 
-        if "github.com" in remote_url:
+        print(f"remote url: {remote_url}")
+        if "github" in remote_url:
             return "github"
-        elif "gitlab.com" in remote_url:
+        elif "gitlab" in remote_url:
             return "gitlab"
         else:
             return "Error: Unable to determine platform from remote URL. Only github and gitlab are supported."
