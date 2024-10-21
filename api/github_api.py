@@ -8,14 +8,15 @@ from src import Merge_requests
 
 class Github_api():
     def __init__(self):
-        self.load_config()
         self.Merge_requests = Merge_requests()
+        self.load_config()
+        print('init')
 
     def load_config(self):
         with open("config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
-        self.owner = Merge_requests.get_repo_owner_from_remote_url()
+        self.owner = self.Merge_requests.get_repo_owner_from_remote_url()
         self.target_branch = config['target_branch']
 
     def get_api_key(self):
@@ -35,8 +36,8 @@ class Github_api():
         return result.stdout.strip()
 
     def create_pull_request(self, title: str, body: str) -> None:
-        repo_owner = Merge_requests.get_repo_owner_from_remote_url()
-        repo_name = Merge_requests.get_repo_from_remote_url()
+        repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
+        repo_name = self.Merge_requests.get_repo_from_remote_url()
 
         source_branch = self.get_current_branch()
         api_key = self.get_api_key()

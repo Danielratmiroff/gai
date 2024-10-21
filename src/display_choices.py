@@ -30,6 +30,19 @@ class DisplayChoices:
                          min_selection_count=1)
         return option
 
+    def render_choices_with_try_again(self, prompt: str, ai_client: callable) -> str:
+        choice = ""
+
+        while choice == OPTIONS["TRY_AGAIN"] or choice == "":
+            response = ai_client(prompt)
+            print(f"response: {response}")
+            title = self.run(response)
+            print(f"selection {title}")
+
+        if title == OPTIONS["EXIT"]:
+            print("Exiting...")
+            return
+
     def run(self, items: list) -> str:
         selected_item = None
         choices = self.parse_response(items)

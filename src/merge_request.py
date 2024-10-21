@@ -1,4 +1,5 @@
 import subprocess
+from typing import Dict
 
 
 class Merge_requests():
@@ -7,7 +8,6 @@ class Merge_requests():
 
     def get_repo_owner_from_remote_url(self) -> str:
         remote_url = self.get_remote_url()
-
         try:
             return remote_url.split(":")[1].split("/")[0]
         except IndexError:
@@ -33,6 +33,16 @@ class Merge_requests():
 
         except subprocess.CalledProcessError:
             return "Error: Unable to get remote URL. Make sure you're in a git repository."
+
+    def get_remote_platform(self) -> str:
+        remote_url = self.get_remote_url()
+
+        if "github.com" in remote_url:
+            return "github"
+        elif "gitlab.com" in remote_url:
+            return "gitlab"
+        else:
+            return "Error: Unable to determine platform from remote URL. Only github and gitlab are supported."
 
     def format_commits(self, result: str) -> str:
         commits = result.split('\n')

@@ -4,7 +4,7 @@ import yaml
 import os
 
 from api import GroqClient, Gitlab_api, Github_api
-from src import OPTIONS, DisplayChoices, Commit, Prompts, Merge_requests
+from src import DisplayChoices, Commit, Prompts, Merge_requests
 
 
 class Main:
@@ -12,7 +12,6 @@ class Main:
     temperature = None
     max_tokens = None
     target_branch = None
-    platform = None
 
     def __init__(self):
         self.args = self.parse_arguments()
@@ -78,99 +77,63 @@ class Main:
 
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(
-            api_key=self.get_api_key(),
             model=self.model,
             temperature=self.temperature,
             max_tokens=self.max_tokens
-
         )
 
-    # migrate this to groq_api.py
-    def get_api_key(self):
-        api_key = os.environ.get("GROQ_API_KEY")
-        if api_key is None:
-            raise ValueError(
-                "GROQ_API_KEY is not set, please set it in your environment variables")
-        return api_key
-
-    def get_platform(self):
-        remote_url = self.get_remote_url()
-
-        if "github.com" in remote_url:
-            self.platform = "github"
-        elif "gitlab.com" in remote_url:
-            self.platform = "gitlab"
-        else:
-            print(
-                "Unable to determine platform from remote URL. Only github and gitlab are supported.")
-            return None
-
-        return self.platform
-
     def do_merge_request(self):
-        title = ""
-        # refactor
-        self.get_platform()
+        platform = self.Merge_requests.get_remote_platform()
 
         commits = self.Merge_requests.get_commits(
             target_branch=self.target_branch,
             source_branch=self.Gitlab.get_current_branch())  # TODO: fix this func
 
-        # migrate prompot logic to merge_request.py
-        build_prompt = self.Prompt.build_merge_request_title_prompt(commits)
+        prompt = self.Prompt.build_merge_request_title_prompt(commits)
 
         description = self.Merge_requests.format_commits(commits)
 
-        print(build_prompt)
-        print(f"token count: {len(build_prompt.split())}")
+        print(prompt)
+        print(f"token count: {len(prompt.split())}")
 
-        while title is OPTIONS["TRY_AGAIN"] or title == "":
-            response = self.groq_chat_client.get_chat_completion(build_prompt)
-            print(response)
-            title = self.DisplayChoices.run(response)
-            print(title)
-
-        if title is OPTIONS["EXIT"]:
-            print("Exiting...")
-            return
+        selected_title = self.DisplayChoices.render_choices_with_try_again(
+            prompt=prompt,
+            ai_client=self.groq_chat_client.get_chat_completion)
 
         print("Creating merge request with...")
-        print(f"Title: {title}")
+        print(f"Title: {selected_title}")
         print(f"Description: {description}")
 
-        print("Platform: ", self.platform)
-        if self.platform == "gitlab":
-            self.Gitlab.create_merge_request(
-                title=title,
-                description=description)
-        elif self.platform == "github":
-            self.Github.create_pull_request(
-                title=title,
-                body=description)
-        else:
-            print("Please specify a platform, you can use the --platform flag")
-            return
+        print("Platform: ", platform)
+
+        match platform:
+            case "gitlab":
+                self.Gitlab.create_merge_request(
+                    title=selected_title,
+                    description=description)
+
+            case "github":
+                self.Github.create_pull_request(
+                    title=selected_title,
+                    body=description)
+            case _:
+                raise ValueError(
+                    "Platform not supported. Only github and gitlab are supported.")
 
     def do_commit(self):
         git_diffs = self.Commit.get_diffs()
-        build_prompt = self.Prompt.build_commit_message_prompt(
+
+        prompt = self.Prompt.build_commit_message_prompt(
             git_diffs)
 
-        commit_message = ""
         # print(build_prompt)
-        print(f"Token count: {len(build_prompt.split())}")
+        print(f"Token count: {len(prompt.split())}")
 
-        while commit_message is OPTIONS["TRY_AGAIN"] or commit_message == "":
-            response = self.groq_chat_client.get_chat_completion(build_prompt)
-            print(response)
-            commit_message = self.DisplayChoices.run(response)
-            print(commit_message)
+        selected_commit = self.DisplayChoices.render_choices_with_try_again(
+            prompt=prompt,
+            ai_client=self.groq_chat_client.get_chat_completion)
 
-        if commit_message is OPTIONS["EXIT"]:
-            print("Exiting...")
-            return
-
-        self.Commit.commit_changes(commit_message)
+        self.Commit.commit_changes(selected_commit)
 
 
 if __name__ == "__main__":
