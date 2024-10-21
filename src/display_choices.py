@@ -36,10 +36,10 @@ class DisplayChoices:
         while choice == OPTIONS["TRY_AGAIN"] or choice == "":
             response = ai_client(prompt)
             print(f"response: {response}")
-            title = self.run(response)
-            print(f"selection {title}")
+            choice = self.run(response)
+            print(f"selection {choice}")
 
-        if title == OPTIONS["EXIT"]:
+        if choice == OPTIONS["EXIT"]:
             print("Exiting...")
             return
 

@@ -133,6 +133,7 @@ class Main:
             prompt=prompt,
             ai_client=self.groq_chat_client.get_chat_completion)
 
+        print("selected_commit", selected_commit)
         self.Commit.commit_changes(selected_commit)
 
 
