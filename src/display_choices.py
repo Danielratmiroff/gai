@@ -43,6 +43,8 @@ class DisplayChoices:
             print("Exiting...")
             return
 
+        return choice
+
     def run(self, items: list) -> str:
         selected_item = None
         choices = self.parse_response(items)
