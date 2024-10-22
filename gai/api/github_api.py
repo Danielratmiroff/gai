@@ -3,7 +3,7 @@ import requests
 import yaml
 import subprocess
 
-from src import Merge_requests
+from gai.src import Merge_requests
 
 
 class Github_api():
@@ -14,7 +14,7 @@ class Github_api():
         self.owner = self.Merge_requests.get_repo_owner_from_remote_url()
 
     def load_config(self):
-        with open("config.yaml", "r") as file:
+        with open("gai/config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
         self.target_branch = config['target_branch']

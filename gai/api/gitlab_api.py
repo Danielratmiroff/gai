@@ -3,7 +3,7 @@ import requests
 import yaml
 import subprocess
 
-from src import Merge_requests
+from gai.src import Merge_requests
 
 
 class Gitlab_api():
@@ -12,7 +12,7 @@ class Gitlab_api():
         self.Merge_requests = Merge_requests()
 
     def load_config(self):
-        with open("config.yaml", "r") as file:
+        with open("gai/config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
         self.target_branch = config['target_branch']
@@ -38,7 +38,7 @@ class Gitlab_api():
         return result.stdout.strip()
 
     def create_merge_request(self, title: str, description: str) -> None:
-        gitlab_url = self.Merge_requests.git_repo_url()
+        gitlab_url = self.Merge_requests.get_remote_url()
 
         project = self.construct_project_url()
         api_key = self.get_api_key()
@@ -53,7 +53,7 @@ class Gitlab_api():
         }
 
         response = requests.post(
-            f"{gitlab_url}/api/v4/projects/{project}/merge_requests",
+            f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
             headers={"PRIVATE-TOKEN": api_key},
             json=data
         )

@@ -3,8 +3,8 @@ import subprocess
 import yaml
 import os
 
-from api import GroqClient, Gitlab_api, Github_api
-from src import DisplayChoices, Commit, Prompts, Merge_requests
+from gai.api import GroqClient, Gitlab_api, Github_api
+from gai.src import DisplayChoices, Commit, Prompts, Merge_requests
 
 
 class Main:
@@ -16,11 +16,7 @@ class Main:
     def __init__(self):
         self.args = self.parse_arguments()
 
-        # Singletons
-        Merge_requests.initialize(self.args.remote)
-
         self.Commit = Commit()
-        self.Merge_requests = Merge_requests()
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
 
@@ -70,7 +66,7 @@ class Main:
         return parser.parse_args()
 
     def load_config(self):
-        with open("config.yaml", "r") as file:
+        with open("gai/config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
         self.model = self.args.model or config['model']
@@ -86,15 +82,20 @@ class Main:
         )
 
     def do_merge_request(self):
-        platform = self.Merge_requests.get_remote_platform()
+        # Initialize singleton
+        Merge_requests.initialize(self.args.remote)
 
-        commits = self.Merge_requests.get_commits(
+        mr = Merge_requests()
+
+        platform = mr.get_remote_platform()
+
+        commits = mr.get_commits(
             target_branch=self.target_branch,
             source_branch=self.Gitlab.get_current_branch())  # TODO: fix this func
 
         prompt = self.Prompt.build_merge_request_title_prompt(commits)
 
-        description = self.Merge_requests.format_commits(commits)
+        description = mr.format_commits(commits)
 
         print(prompt)
         print(f"token count: {len(prompt.split())}")
