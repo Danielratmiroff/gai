@@ -3,20 +3,25 @@ import requests
 import yaml
 import subprocess
 
+from src import Merge_requests
+
 
 class Gitlab_api():
     def __init__(self):
         self.load_config()
+        self.Merge_requests = Merge_requests()
 
     def load_config(self):
         with open("config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
-        self.url = config['gitlab_url']
-        self.project = config['gitlab_project']
         self.target_branch = config['target_branch']
         self.assignee = config['gitlab_assignee_id']
-        self.source_branch = self.get_current_branch()
+
+    def construct_project_url(self) -> str:
+        repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
+        repo_name = self.Merge_requests.get_repo_from_remote_url()
+        return f"{repo_owner}%2F{repo_name}"
 
     def get_api_key(self):
         api_key = os.environ.get("GITLAB_PRIVATE_TOKEN")
@@ -33,8 +38,14 @@ class Gitlab_api():
         return result.stdout.strip()
 
     def create_merge_request(self, title: str, description: str) -> None:
+        gitlab_url = self.Merge_requests.git_repo_url()
+
+        project = self.construct_project_url()
+        api_key = self.get_api_key()
+        source_branch = self.get_current_branch()
+
         data = {
-            "source_branch": self.source_branch,
+            "source_branch": source_branch,
             "target_branch": self.target_branch,
             "title": title,
             "description": description,
@@ -42,8 +53,8 @@ class Gitlab_api():
         }
 
         response = requests.post(
-            f"{self.url}/api/v4/projects/{self.project}/merge_requests",
-            headers={"PRIVATE-TOKEN": self.get_api_key()},
+            f"{gitlab_url}/api/v4/projects/{project}/merge_requests",
+            headers={"PRIVATE-TOKEN": api_key},
             json=data
         )
 
@@ -52,7 +63,3 @@ class Gitlab_api():
         else:
             print(f"Failed to create merge request: {response.status_code}")
             print(f"Response text: {response.text}")
-
-
-if __name__ == "__main__":
-    Gitlab_api()

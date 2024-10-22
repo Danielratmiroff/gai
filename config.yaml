@@ -6,12 +6,7 @@ max_tokens: 8000
 
 temperature: 1
 
-# Gitlab config
-gitlab_url: "https://gitlab.com"
-gitlab_project: "danielratmiroff%2Fgai"
-gitlab_assignee_id: 10437754
 target_branch: "master"
 
-# GitHub config
-github_owner: "Danielratmiroff"
-github_repo: "gai"
+# Gitlab config
+gitlab_assignee_id: 10437754
