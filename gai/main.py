@@ -26,7 +26,7 @@ class Main:
             'merge', help='Execute an automated merge request')
 
         merge_parser.add_argument(
-            'remote', help='Specify the remote git url (e.g., origin, upstream)')
+            'remote', nargs='?', help='Specify the remote git url (e.g., origin, upstream)')
 
         # Commit
         commit_parser = subparsers.add_parser(
