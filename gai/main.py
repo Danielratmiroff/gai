@@ -63,7 +63,8 @@ class Main:
 
     def do_merge_request(self):
         # Initialize singleton
-        Merge_requests.initialize(self.args.remote)
+        remote_repo = self.args.remote or "origin"
+        Merge_requests.initialize(remote_name=remote_repo)
 
         mr = Merge_requests()
 
