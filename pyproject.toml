@@ -3,22 +3,33 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = ""
+name = "gai-tool"
 version = "0.1.0"
-description = "A short description of your package"
-authors = [{ name = "Your Name", email = "your.email@example.com" }]
+description = "AI-powered automation tool for git"
+authors = [{ name = "Daniel Ratmiroff", email = "danielratmiroff@pm.me" }]
 readme = "README.md"
-license = { text = "MIT" }
-dependencies = ["requests>=2.25.1", "numpy>=1.19.2"]
-keywords = ["example", "package"]
+license = { file = "LICENSE" }
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+keywords = ["git", "ai", "automation", "commit", "merge-request"]
+dependencies = ["pyyaml", "requests", "pick", "groq"]
+
+[project.scripts]
+gai = "gai.main:main"
 
 [project.urls]
-"Homepage" = "https://github.com/yourusername/your-repo"
-"Documentation" = "https://github.com/yourusername/your-repo#readme"
-"Source" = "https://github.com/yourusername/your-repo"
-"Tracker" = "https://github.com/yourusername/your-repo/issues"
+"Homepage" = "https://github.com/Danielratmiroff/gai"
+"Source" = "https://github.com/Danielratmiroff/gai"
+"Bug Tracker" = "https://github.com/Danielratmiroff/gai/issues"
+"Documentation" = "https://github.com/Danielratmiroff/gai#readme"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gai*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+gai = ["config.yaml"]

@@ -3,8 +3,8 @@ import subprocess
 import yaml
 import os
 
-from api import GroqClient, Gitlab_api, Github_api
-from src import DisplayChoices, Commit, Prompts, Merge_requests
+from gai.api import GroqClient, Gitlab_api, Github_api
+from gai.src import DisplayChoices, Commit, Prompts, Merge_requests
 
 
 class Main:
@@ -12,30 +12,6 @@ class Main:
     temperature = None
     max_tokens = None
     target_branch = None
-
-    def __init__(self):
-        self.args = self.parse_arguments()
-
-        # Singletons
-        Merge_requests.initialize(self.args.remote)
-
-        self.Commit = Commit()
-        self.Merge_requests = Merge_requests()
-        self.Prompt = Prompts()
-        self.DisplayChoices = DisplayChoices()
-
-        self.Gitlab = Gitlab_api()
-        self.Github = Github_api()
-
-        self.load_config()
-        self.init_groq_client()
-
-        if self.args.command == 'merge':
-            self.do_merge_request()
-        elif self.args.command == 'commit':
-            self.do_commit()
-        else:
-            print("Please specify a command: merge or commit")
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(
@@ -50,7 +26,7 @@ class Main:
             'merge', help='Execute an automated merge request')
 
         merge_parser.add_argument(
-            'remote', help='Specify the remote git url (e.g., origin, upstream)')
+            'remote', nargs='?', help='Specify the remote git url (e.g., origin, upstream)')
 
         # Commit
         commit_parser = subparsers.add_parser(
@@ -70,7 +46,7 @@ class Main:
         return parser.parse_args()
 
     def load_config(self):
-        with open("config.yaml", "r") as file:
+        with open("gai/config.yaml", "r") as file:
             config = yaml.safe_load(file)
 
         self.model = self.args.model or config['model']
@@ -86,15 +62,21 @@ class Main:
         )
 
     def do_merge_request(self):
-        platform = self.Merge_requests.get_remote_platform()
+        # Initialize singleton
+        remote_repo = self.args.remote or "origin"
+        Merge_requests.initialize(remote_name=remote_repo)
 
-        commits = self.Merge_requests.get_commits(
+        mr = Merge_requests()
+
+        platform = mr.get_remote_platform()
+
+        commits = mr.get_commits(
             target_branch=self.target_branch,
             source_branch=self.Gitlab.get_current_branch())  # TODO: fix this func
 
         prompt = self.Prompt.build_merge_request_title_prompt(commits)
 
-        description = self.Merge_requests.format_commits(commits)
+        description = mr.format_commits(commits)
 
         print(prompt)
         print(f"token count: {len(prompt.split())}")
@@ -139,6 +121,31 @@ class Main:
         print("selected_commit", selected_commit)
         self.Commit.commit_changes(selected_commit)
 
+    def run(self):
+        self.args = self.parse_arguments()
+
+        self.Commit = Commit()
+        self.Prompt = Prompts()
+        self.DisplayChoices = DisplayChoices()
+
+        self.Gitlab = Gitlab_api()
+        self.Github = Github_api()
+
+        self.load_config()
+        self.init_groq_client()
+
+        if self.args.command == 'merge':
+            self.do_merge_request()
+        elif self.args.command == 'commit':
+            self.do_commit()
+        else:
+            print("Please specify a command: merge or commit")
+
+
+def main():
+    app = Main()
+    app.run()
+
 
 if __name__ == "__main__":
-    Main()
+    main()

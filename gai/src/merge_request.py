@@ -4,7 +4,7 @@ from typing import Dict
 
 class Merge_requests:
     _instance = None
-    remote_name = None
+    remote_name = "origin"
 
     def __new__(cls):
         if cls._instance is None:
