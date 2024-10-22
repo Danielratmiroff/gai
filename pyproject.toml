@@ -18,7 +18,7 @@ keywords = ["git", "ai", "automation", "commit", "merge-request"]
 dependencies = ["pyyaml", "requests", "pick", "groq"]
 
 [project.scripts]
-gai = "gai.main:Main"
+gai = "gai.main:main"
 
 [project.urls]
 "Homepage" = "https://github.com/Danielratmiroff/gai"
