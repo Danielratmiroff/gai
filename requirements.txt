@@ -8,7 +8,6 @@ coverage==7.6.4
 cryptography==43.0.3
 distro==1.9.0
 docutils==0.21.2
-gai-tool @ file:///home/daniel/code/gai
 groq==0.11.0
 h11==0.14.0
 httpcore==1.0.6
