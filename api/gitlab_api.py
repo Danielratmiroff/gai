@@ -38,7 +38,7 @@ class Gitlab_api():
         return result.stdout.strip()
 
     def create_merge_request(self, title: str, description: str) -> None:
-        girlab_url = self.Merge_requests.get_remote_url()
+        gitlab_url = self.Merge_requests.git_repo_url()
 
         project = self.construct_project_url()
         api_key = self.get_api_key()
@@ -53,7 +53,7 @@ class Gitlab_api():
         }
 
         response = requests.post(
-            f"{girlab_url}/api/v4/projects/{project}/merge_requests",
+            f"{gitlab_url}/api/v4/projects/{project}/merge_requests",
             headers={"PRIVATE-TOKEN": api_key},
             json=data
         )

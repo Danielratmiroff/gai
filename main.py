@@ -16,6 +16,9 @@ class Main:
     def __init__(self):
         self.args = self.parse_arguments()
 
+        # Singletons
+        Merge_requests.initialize(self.args.remote)
+
         self.Commit = Commit()
         self.Merge_requests = Merge_requests()
         self.Prompt = Prompts()
