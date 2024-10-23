@@ -9,8 +9,25 @@ from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManag
 
 
 class Main:
-    def __init__(self):
+    def run(self):
+        self.args = self.parse_arguments()
+
+        self.Commit = Commit()
+        self.Prompt = Prompts()
+        self.DisplayChoices = DisplayChoices()
+
+        self.Gitlab = Gitlab_api()
+        self.Github = Github_api()
+
         self.load_config()
+        self.init_groq_client()
+
+        if self.args.command == 'merge':
+            self.do_merge_request()
+        elif self.args.command == 'commit':
+            self.do_commit()
+        else:
+            print("Please specify a command: merge or commit")
 
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
@@ -122,26 +139,6 @@ class Main:
 
         print("selected_commit", selected_commit)
         self.Commit.commit_changes(selected_commit)
-
-    def run(self):
-        self.args = self.parse_arguments()
-
-        self.Commit = Commit()
-        self.Prompt = Prompts()
-        self.DisplayChoices = DisplayChoices()
-
-        self.Gitlab = Gitlab_api()
-        self.Github = Github_api()
-
-        self.load_config()
-        self.init_groq_client()
-
-        if self.args.command == 'merge':
-            self.do_merge_request()
-        elif self.args.command == 'commit':
-            self.do_commit()
-        else:
-            print("Please specify a command: merge or commit")
 
 
 def main():

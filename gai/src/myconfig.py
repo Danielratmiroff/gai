@@ -53,7 +53,7 @@ class ConfigManager:
 
 def get_app_name():
     try:
-        with open('pyproject.toml', 'r') as f:
+        with open('pyproject.toml', 'rb') as f:
             pyproject = tomllib.load(f)
         return pyproject['project']['name']
     except (FileNotFoundError, KeyError):

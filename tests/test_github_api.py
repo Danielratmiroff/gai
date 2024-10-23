@@ -26,7 +26,7 @@ def github_api(mock_merge_requests):
     return Github_api()
 
 
-def test_load_config(gitlab_api):
+def test_load_config(github_api):
     """
     Test the load_config method to ensure configuration is loaded correctly.
     """
@@ -40,15 +40,15 @@ def test_load_config(gitlab_api):
     with patch('gai.api.github_api.ConfigManager', return_value=mock_config_manager) as mock_config_manager_class:
         with patch('gai.api.github_api.get_app_name', return_value='test_app'):
             # When
-            gitlab_api.load_config()
+            github_api.load_config()
 
             # Then
             mock_config_manager_class.assert_called_once_with('test_app')
             mock_config_manager.get_config.assert_any_call('target_branch')
             mock_config_manager.get_config.assert_any_call(
                 'gitlab_assignee_id')
-            assert gitlab_api.target_branch == 'main'
-            assert gitlab_api.assignee == '12345'
+            assert github_api.target_branch == 'main'
+            assert github_api.assignee == '12345'
 
 
 def test_get_api_key_success(github_api):
