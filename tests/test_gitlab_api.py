@@ -30,21 +30,24 @@ def test_load_config(gitlab_api):
     Test the load_config method to ensure configuration is loaded correctly.
     """
     # Given
-    with patch("builtins.open", mock_open(read_data="target_branch: main\ngitlab_assignee_id: 12345")) as mock_file:
-        with patch("gai.api.gitlab_api.yaml.safe_load") as mock_yaml_load:
+    mock_config_manager = MagicMock()
+    mock_config_manager.get_config.side_effect = [
+        'main',
+        '12345'
+    ]
 
-            mock_yaml_load.return_value = {
-                'target_branch': 'main', 'gitlab_assignee_id': 12345}
-
-            # Given
+    with patch('gai.api.gitlab_api.ConfigManager', return_value=mock_config_manager) as mock_config_manager_class:
+        with patch('gai.api.gitlab_api.get_app_name', return_value='test_app'):
+            # When
             gitlab_api.load_config()
 
             # Then
-            mock_file.assert_called_once_with("gai/config.yaml", "r")
-            mock_yaml_load.assert_called_once()
+            mock_config_manager_class.assert_called_once_with('test_app')
+            mock_config_manager.get_config.assert_any_call('target_branch')
+            mock_config_manager.get_config.assert_any_call('assignee_id')
 
             assert gitlab_api.target_branch == 'main'
-            assert gitlab_api.assignee == 12345
+            assert gitlab_api.assignee_id == 12345
 
 
 def test_get_api_key_success(gitlab_api):

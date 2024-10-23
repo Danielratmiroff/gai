@@ -8,7 +8,7 @@ DEFAULT_CONFIG = {
     'max_tokens': 8000,
     'temperature': 1,
     'target_branch': 'master',
-    'gitlab_assignee_id': 10437754,
+    'assignee_id': 10437754,
 }
 
 
