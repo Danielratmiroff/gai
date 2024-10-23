@@ -1,17 +1,28 @@
 import argparse
+from dataclasses import dataclass
 import subprocess
 import yaml
 import os
 
 from gai.api import GroqClient, Gitlab_api, Github_api
-from gai.src import DisplayChoices, Commit, Prompts, Merge_requests
+from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManager, get_app_name
 
 
 class Main:
-    model = None
-    temperature = None
-    max_tokens = None
-    target_branch = None
+    def __init__(self):
+        self.load_config()
+
+    def load_config(self):
+        config_manager = ConfigManager(get_app_name())
+
+        # TODO: refactor this to write to config file and store
+        self.model = self.args.model or config_manager.get_config('model')
+        self.temperature = self.args.temperature or config_manager.get_config(
+            'temperature')
+        self.max_tokens = self.args.max_tokens or config_manager.get_config(
+            'max_tokens')
+        self.target_branch = self.args.target_branch or config_manager.get_config(
+            'target_branch')
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(
@@ -44,15 +55,6 @@ class Main:
                            help='Specify the target branch for merge requests')
 
         return parser.parse_args()
-
-    def load_config(self):
-        with open("gai/config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-
-        self.model = self.args.model or config['model']
-        self.temperature = self.args.temperature or config['temperature']
-        self.max_tokens = self.args.max_tokens or config['max_tokens']
-        self.target_branch = self.args.target_branch or config['target_branch']
 
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(

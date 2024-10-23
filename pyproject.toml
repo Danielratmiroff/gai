@@ -30,6 +30,3 @@ gai = "gai.main:main"
 where = ["."]
 include = ["gai*"]
 exclude = ["tests*"]
-
-[tool.setuptools.package-data]
-gai = ["config.yaml"]
