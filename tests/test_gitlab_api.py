@@ -33,7 +33,7 @@ def test_load_config(gitlab_api):
     mock_config_manager = MagicMock()
     mock_config_manager.get_config.side_effect = [
         'main',
-        '12345'
+        12345
     ]
 
     with patch('gai.api.gitlab_api.ConfigManager', return_value=mock_config_manager) as mock_config_manager_class:

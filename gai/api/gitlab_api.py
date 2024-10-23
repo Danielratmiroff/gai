@@ -14,7 +14,7 @@ class Gitlab_api():
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
         self.target_branch = config_manager.get_config('target_branch')
-        self.assignee = config_manager.get_config('gitlab_assignee_id')
+        self.assignee_id = config_manager.get_config('assignee_id')
 
     def construct_project_url(self) -> str:
         repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
@@ -47,7 +47,7 @@ class Gitlab_api():
             "target_branch": self.target_branch,
             "title": title,
             "description": description,
-            "assignee_id": self.assignee
+            "assignee_id": self.assignee_id
         }
 
         response = requests.post(
