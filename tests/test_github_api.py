@@ -45,10 +45,7 @@ def test_load_config(github_api):
             # Then
             mock_config_manager_class.assert_called_once_with('test_app')
             mock_config_manager.get_config.assert_any_call('target_branch')
-            mock_config_manager.get_config.assert_any_call(
-                'gitlab_assignee_id')
             assert github_api.target_branch == 'main'
-            assert github_api.assignee == '12345'
 
 
 def test_get_api_key_success(github_api):

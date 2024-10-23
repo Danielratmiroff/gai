@@ -10,9 +10,11 @@ class Github_api():
     def __init__(self):
         self.Merge_requests = Merge_requests()
         self.owner = self.Merge_requests.get_repo_owner_from_remote_url()
+        self.load_config()
 
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
+
         self.target_branch = config_manager.get_config('target_branch')
 
     def get_api_key(self):
