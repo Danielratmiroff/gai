@@ -3,20 +3,18 @@ import requests
 import yaml
 import subprocess
 
-from gai.src import Merge_requests
+from gai.src import Merge_requests, ConfigManager, get_app_name
 
 
 class Gitlab_api():
     def __init__(self):
         self.load_config()
-        self.Merge_requests = Merge_requests()
+        self.Merge_requests = Merge_requests().get_instance()
 
     def load_config(self):
-        with open("gai/config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-
-        self.target_branch = config['target_branch']
-        self.assignee = config['gitlab_assignee_id']
+        config_manager = ConfigManager(get_app_name())
+        self.target_branch = config_manager.get_config('target_branch')
+        self.assignee_id = config_manager.get_config('assignee_id')
 
     def construct_project_url(self) -> str:
         repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
@@ -40,8 +38,11 @@ class Gitlab_api():
     def create_merge_request(self, title: str, description: str) -> None:
         gitlab_url = self.Merge_requests.get_remote_url()
 
+        print(f"gitlab_url: {gitlab_url}")
         project = self.construct_project_url()
+        print(f"project: {project}")
         api_key = self.get_api_key()
+        print(f"api_key: {api_key}")
         source_branch = self.get_current_branch()
 
         data = {
@@ -49,7 +50,7 @@ class Gitlab_api():
             "target_branch": self.target_branch,
             "title": title,
             "description": description,
-            "assignee_id": self.assignee
+            "assignee_id": self.assignee_id
         }
 
         response = requests.post(

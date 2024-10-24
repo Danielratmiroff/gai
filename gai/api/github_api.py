@@ -3,21 +3,19 @@ import requests
 import yaml
 import subprocess
 
-from gai.src import Merge_requests
+from gai.src import Merge_requests, ConfigManager, get_app_name
 
 
 class Github_api():
     def __init__(self):
+        self.Merge_requests = Merge_requests().get_instance()
+        self.owner = self.Merge_requests.get_repo_owner_from_remote_url()
         self.load_config()
 
-        self.Merge_requests = Merge_requests()
-        self.owner = self.Merge_requests.get_repo_owner_from_remote_url()
-
     def load_config(self):
-        with open("gai/config.yaml", "r") as file:
-            config = yaml.safe_load(file)
+        config_manager = ConfigManager(get_app_name())
 
-        self.target_branch = config['target_branch']
+        self.target_branch = config_manager.get_config('target_branch')
 
     def get_api_key(self):
         api_key = os.environ.get("GITHUB_TOKEN")

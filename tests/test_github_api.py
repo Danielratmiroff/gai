@@ -30,17 +30,21 @@ def test_load_config(github_api):
     """
     Test the load_config method to ensure configuration is loaded correctly.
     """
-    with patch("builtins.open", mock_open(read_data="target_branch: main")) as mock_file:
-        with patch("gai.api.github_api.yaml.safe_load") as mock_yaml_load:
-            # Configure the mock to return a specific configuration
-            mock_yaml_load.return_value = {'target_branch': 'main'}
+    # Given
+    mock_config_manager = MagicMock()
+    mock_config_manager.get_config.side_effect = [
+        'main',
+        '12345'
+    ]
 
-            # Call the method under test
+    with patch('gai.api.github_api.ConfigManager', return_value=mock_config_manager) as mock_config_manager_class:
+        with patch('gai.api.github_api.get_app_name', return_value='test_app'):
+            # When
             github_api.load_config()
 
-            # Assertions to ensure config is loaded correctly
-            mock_file.assert_called_once_with("gai/config.yaml", "r")
-            mock_yaml_load.assert_called_once()
+            # Then
+            mock_config_manager_class.assert_called_once_with('test_app')
+            mock_config_manager.get_config.assert_any_call('target_branch')
             assert github_api.target_branch == 'main'
 
 
