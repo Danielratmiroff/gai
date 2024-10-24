@@ -9,7 +9,7 @@ from gai.src import Merge_requests, ConfigManager, get_app_name
 class Gitlab_api():
     def __init__(self):
         self.load_config()
-        self.Merge_requests = Merge_requests()
+        self.Merge_requests = Merge_requests().get_instance()
 
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
@@ -38,8 +38,11 @@ class Gitlab_api():
     def create_merge_request(self, title: str, description: str) -> None:
         gitlab_url = self.Merge_requests.get_remote_url()
 
+        print(f"gitlab_url: {gitlab_url}")
         project = self.construct_project_url()
+        print(f"project: {project}")
         api_key = self.get_api_key()
+        print(f"api_key: {api_key}")
         source_branch = self.get_current_branch()
 
         data = {

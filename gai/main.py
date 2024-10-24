@@ -85,7 +85,7 @@ class Main:
         remote_repo = self.args.remote or "origin"
         Merge_requests.initialize(remote_name=remote_repo)
 
-        mr = Merge_requests()
+        mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()
 
