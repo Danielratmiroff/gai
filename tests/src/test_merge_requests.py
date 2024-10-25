@@ -2,7 +2,7 @@ import pytest
 import subprocess
 from unittest.mock import patch, Mock
 
-from gai.src.merge_requests import Merge_requests
+from gai.src.merge_requests import Merge_requests, parse_repo_name, parse_repo_owner
 
 # --------------------------
 # Fixtures
@@ -133,29 +133,94 @@ def test_git_repo_url_failure(mock_subprocess_run_failure):
 # --------------------------
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
-def test_get_repo_owner_from_remote_url_success(mock_git_url, merge_requests_instance):
-    mock_git_url.return_value = "git@github.com:user/repo.git"
-    owner = merge_requests_instance.get_repo_owner_from_remote_url()
-    assert owner == "user", "Should correctly parse the repository owner"
+def test_parse_repo_owner_success():
+    url = 'github.com/owner/repo.git'
+    assert parse_repo_owner(url) == "owner"
+
+
+def test_parse_repo_owner_empty_url():
+    with pytest.raises(ValueError, match="Repository URL cannot be empty"):
+        parse_repo_owner("")
+
+
+def test_parse_repo_owner_invalid_format():
+    with pytest.raises(ValueError, match="Invalid repository URL format"):
+        parse_repo_owner("invalid_url")
+
+
+def test_parse_repo_owner_empty_domain():
+    with pytest.raises(ValueError, match="Invalid repository URL format"):
+        parse_repo_owner("/owner/repo.git")
+
+
+def test_parse_repo_owner_empty_owner():
+    with pytest.raises(ValueError, match="Invalid repository URL format"):
+        parse_repo_owner("/repo-name")
 
 
 @patch('gai.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_owner_from_remote_url_failure(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "invalid_url"
+
+    with pytest.raises(ValueError, match="Error: Unable to get repo owner."):
+        merge_requests_instance.get_repo_owner_from_remote_url()
+
+
+@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+def test_get_repo_owner_from_remote_url_success(mock_git_url, merge_requests_instance):
+    mock_git_url.return_value = "github.com/owner/repo.git"
+
     owner = merge_requests_instance.get_repo_owner_from_remote_url()
-    assert owner == "Error: Unable to get repo owner.", "Should return error message for invalid URL"
+
+    assert owner == "owner"
 
 # --------------------------
 # get_repo_from_remote_url Method Tests
 # --------------------------
 
 
+def test_parse_repo_name():
+    url = "github.com/user/repo.git"
+    assert parse_repo_name(url) == "repo"
+
+
+def test_parse_repo_name_no_git_extension():
+    url = "github.com/user/repo"
+    assert parse_repo_name(url) == "repo"
+
+
+def test_parse_repo_name_with_trailing_slash():
+    url = "github.com/user/repo/"
+    assert parse_repo_name(url) == "repo"
+
+
+def test_parse_repo_name_empty_url():
+    with pytest.raises(ValueError, match="Repository URL cannot be empty"):
+        parse_repo_name("")
+
+
+def test_parse_repo_name_only_owner_ssh():
+    with pytest.raises(ValueError, match="URL must contain both owner and repository"):
+        parse_repo_name("github.com/user")
+
+
+def test_parse_repo_name_invalid():
+    with pytest.raises(ValueError, match="URL must contain both owner and repository"):
+        parse_repo_name("github.com")
+
+
+@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+def test_get_repo_from_remote_ssh_success(mock_git_url, merge_requests_instance):
+    mock_git_url.return_value = "github.com/user/repo.git"
+    repo = merge_requests_instance.get_repo_from_remote_url()
+    assert repo == "repo", "Should correctly parse the repository name from SSH URL"
+
+
 @patch('gai.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_from_remote_url_success(mock_git_url, merge_requests_instance):
-    mock_git_url.return_value = "git@github.com:user/repo.git"
+    mock_git_url.return_value = "github.com/user/repo.git"
     repo = merge_requests_instance.get_repo_from_remote_url()
-    assert repo == "repo", "Should correctly parse the repository name"
+    assert repo == "repo", "Should correctly parse the repository name from HTTPS URL"
 
 
 @patch('gai.src.merge_requests.Merge_requests.git_repo_url')
@@ -163,7 +228,6 @@ def test_get_repo_from_remote_url_failure(mock_git_url, merge_requests_instance)
     mock_git_url.return_value = "invalid_url"
     repo = merge_requests_instance.get_repo_from_remote_url()
     assert repo == "Error: Unable to get repo owner.", "Should return error message for invalid URL"
-
 # --------------------------
 # get_remote_url Method Tests
 # --------------------------
