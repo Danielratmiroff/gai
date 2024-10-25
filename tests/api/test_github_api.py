@@ -6,6 +6,17 @@ import requests
 
 # Adjust the import path based on your project structure
 from gai.api import Github_api
+from tests.test_helpers import mock_subprocess_run_output
+
+
+@pytest.fixture
+def mr_mock_subprocess_run_success():
+    """
+    Fixture to mock subprocess.run for successful executions.
+    Returns a mock that can be configured per test.
+    """
+    with patch('gai.src.merge_requests.subprocess.run') as mock_run:
+        yield mock_run
 
 
 @pytest.fixture
@@ -13,7 +24,7 @@ def mock_merge_requests():
     """
     Fixture to mock the Merge_requests class in gai.src.
     """
-    with patch('gai.src.merge_request.Merge_requests') as MockMergeRequests:
+    with patch('gai.src.merge_requests.Merge_requests') as MockMergeRequests:
         mock_instance = MagicMock()
         mock_instance.git_repo_url.return_value = 'git@gitlab.com:owner/repo.git'
         mock_instance.get_remote_url.return_value = 'gitlab.com'  # Add explicit return value
@@ -76,74 +87,70 @@ def test_get_api_key_failure(github_api):
         assert "GITHUB_TOKEN is not set" in str(exc_info.value)
 
 
-def test_get_current_branch(github_api):
+def test_get_current_branch(mr_mock_subprocess_run_success, github_api):
     """
     Test the get_current_branch method to ensure it retrieves the correct branch name.
     """
-    with patch('gai.api.github_api.subprocess.run') as mock_subprocess_run:
-        # Given
-        mock_result = MagicMock()
-        mock_result.stdout = 'feature-branch\n'
-        mock_subprocess_run.return_value = mock_result
+    mr_mock_subprocess_run_success.return_value = mock_subprocess_run_output(
+        'feature-branch\n')
 
-        # When
-        current_branch = github_api.get_current_branch()
+    # When
+    current_branch = github_api.get_current_branch()
+    print(current_branch)
 
-        # Then
-        mock_subprocess_run.assert_called_once_with(
-            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, check=True
-        )
-        assert current_branch == 'feature-branch'
+    # Then
+    mr_mock_subprocess_run_success.assert_called_with(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        capture_output=True, text=True, check=True
+    )
+
+    assert current_branch == 'feature-branch'
 
 
-def test_create_pull_request_success(github_api, mock_merge_requests):
+def test_create_pull_request_success(github_api, mock_merge_requests, mr_mock_subprocess_run_success):
     """
     Test the create_pull_request method for a successful pull request creation.
     """
     # Given
-    with patch('gai.src.merge_request.subprocess.run') as mock_subprocess_run:
-        mock_result = MagicMock()
-        # Simulate the output of the command
-        mock_result.stdout = 'git@github.com:owner/repo.git'
-        mock_subprocess_run.return_value = mock_result
+    mr_mock_subprocess_run_success.return_value = mock_subprocess_run_output(
+        'git@github.com:owner/repo.git')
 
-        with patch.object(Github_api, 'get_current_branch', return_value='feature-branch'):
-            with patch.object(Github_api, 'get_api_key', return_value='test_token'):
+    with patch.object(Github_api, 'get_current_branch', return_value='feature-branch'):
+        with patch.object(Github_api, 'get_api_key', return_value='test_token'):
 
-                # Configure the mock response for a successful PR creation
-                with patch('gai.api.github_api.requests.post') as mock_requests_post:
-                    mock_response = MagicMock()
-                    mock_response.status_code = 201
-                    mock_response.json.return_value = {
-                        'html_url': 'https://github.com/owner/repo/pull/1'
-                    }
-                    mock_requests_post.return_value = mock_response
+            # Configure the mock response for a successful PR creation
+            with patch('gai.api.github_api.requests.post') as mock_requests_post:
+                mock_response = MagicMock()
+                mock_response.status_code = 201
+                mock_response.json.return_value = {
+                    'html_url': 'https://github.com/owner/repo/pull/1'
+                }
+                mock_requests_post.return_value = mock_response
 
-                    # Capture the print output
-                    with patch('builtins.print') as mock_print:
-                        # When
-                        github_api.create_pull_request('Test PR', 'Test body')
+                # Capture the print output
+                with patch('builtins.print') as mock_print:
+                    # When
+                    github_api.create_pull_request('Test PR', 'Test body')
 
-                        mock_requests_post.assert_called_once_with(
-                            "https://api.github.com/repos/owner/repo/pulls",
-                            headers={
-                                "Authorization": "token test_token",
-                                "Accept": "application/vnd.github.v3+json"
-                            },
-                            json={
-                                "title": "Test PR",
-                                "head": "feature-branch",
-                                "base": github_api.target_branch,
-                                "body": "Test body"
-                            }
-                        )
+                    mock_requests_post.assert_called_once_with(
+                        "https://api.github.com/repos/owner/repo/pulls",
+                        headers={
+                            "Authorization": "token test_token",
+                            "Accept": "application/vnd.github.v3+json"
+                        },
+                        json={
+                            "title": "Test PR",
+                            "head": "feature-branch",
+                            "base": github_api.target_branch,
+                            "body": "Test body"
+                        }
+                    )
 
-                        # Then
-                        mock_print.assert_any_call(
-                            "Pull request created successfully.")
-                        mock_print.assert_any_call(
-                            "Pull request URL: https://github.com/owner/repo/pull/1")
+                    # Then
+                    mock_print.assert_any_call(
+                        "Pull request created successfully.")
+                    mock_print.assert_any_call(
+                        "Pull request URL: https://github.com/owner/repo/pull/1")
 
 
 def test_create_pull_request_failure(github_api, mock_merge_requests):
@@ -151,7 +158,7 @@ def test_create_pull_request_failure(github_api, mock_merge_requests):
     Test the create_pull_request method when pull request creation fails.
     """
     # Given
-    with patch('gai.src.merge_request.subprocess.run') as mock_subprocess_run:
+    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
         mock_result = MagicMock()
         # Simulate the output of the command
         mock_result.stdout = 'git@github.com:owner/repo.git'

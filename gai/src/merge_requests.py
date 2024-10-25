@@ -24,34 +24,42 @@ class Merge_requests:
         return cls._instance
 
     def get_repo_owner_from_remote_url(self) -> str:
-        remote_url = self.git_repo_url()
+        """
+        Get the repository owner from the current git remote URL.
+        """
         try:
-            return remote_url.split(":")[1].split("/")[0]
-        except IndexError:
-            return "Error: Unable to get repo owner."
+            remote_url = self.git_repo_url()
+            return parse_repo_owner(remote_url)
+        except (ValueError, Exception) as e:
+            raise ValueError("Error: Unable to get repo owner.") from e
 
     def get_repo_from_remote_url(self) -> str:
-        remote_url = self.git_repo_url()
+        """
+        Get the repository name from the current git remote URL.
 
+        Returns:
+            str - The repository name or error message
+        """
         try:
-            return remote_url.split(":")[1].split("/")[1].split(".")[0]
-        except IndexError:
+            remote_url = self.git_repo_url()
+            return parse_repo_name(remote_url)
+        except ValueError:
             return "Error: Unable to get repo owner."
 
-    # Extract the domain from the Git URL
     def get_remote_url(self) -> str:
         remote_url = self.git_repo_url()
+        return remote_url.split("/")[0]
 
-        try:
-            if remote_url.startswith("git@"):
-                domain = remote_url.split("@")[1].split(":")[0]
+    """
+    Gets the remote URL of the current git repository and returns it in the format "domain/owner/repo.git".
 
-            elif remote_url.startswith("https://"):
-                domain = remote_url.split("//")[1].split("/")[0]
+    Sample remote URL:
+        git@github.com:user/repo.git or https://github.com:user/repo.git
 
-            return domain
-        except IndexError:
-            return "Error: Unable to get remote URL."
+    Returns:
+        "github.com/user/repo.git"
+
+    """
 
     def git_repo_url(self) -> str:
         try:
@@ -60,9 +68,15 @@ class Merge_requests:
                 capture_output=True,
                 text=True,
                 check=True
-            )
+            ).stdout.strip()
 
-            return result.stdout.strip()
+            if result.startswith("git@"):
+                url = result.split("@")[1].replace(":", "/")
+
+            elif result.startswith("https://"):
+                url = result.split("//")[1]
+
+            return url
 
         except subprocess.CalledProcessError:
             return "Error: Unable to get remote URL. Make sure you're in a git repository."
@@ -104,4 +118,53 @@ class Merge_requests:
             return result.stdout.strip()
 
         except subprocess.CalledProcessError as e:
+
             return f"Error fetching commits: {e}"
+
+
+def parse_repo_owner(url: str) -> str:
+    """
+    Parse the repository owner from a git URL string.
+    """
+    if not url:
+        raise ValueError("Repository URL cannot be empty")
+
+    # Remove trailing and starting slashes
+    segments = url.lstrip("/").rstrip("/").split("/")
+
+    if len(segments) < 3:
+        raise ValueError(f"Invalid repository URL format: {url}")
+
+    owner = segments[1]
+    if not owner:
+        raise ValueError("Repository owner cannot be empty")
+
+    return owner
+
+
+def parse_repo_name(url: str) -> str:
+    """
+    Parse the repository name from a git URL string (supports both SSH and HTTPS formats).
+    """
+    if not url:
+        raise ValueError("Repository URL cannot be empty")
+
+    # Remove trailing slashes and spaces
+    url = url.strip().rstrip('/')
+
+    try:
+        # Must have both owner and repo parts
+        if '/' not in url or url.count('/') < 2:
+            raise ValueError(
+                f"URL must contain both owner and repository: {url}")
+
+        # Get just the repo name (part after the last '/')
+        repo_name = url.split('/')[-1].replace('.git', '')
+
+        if not repo_name:
+            raise ValueError("Repository name cannot be empty")
+
+        return repo_name
+
+    except IndexError:
+        raise ValueError(f"Unable to extract repository name from: {url}")
