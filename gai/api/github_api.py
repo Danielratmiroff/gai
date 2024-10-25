@@ -9,7 +9,6 @@ from gai.src import Merge_requests, ConfigManager, get_app_name
 class Github_api():
     def __init__(self):
         self.Merge_requests = Merge_requests().get_instance()
-        self.owner = self.Merge_requests.get_repo_owner_from_remote_url()
         self.load_config()
 
     def load_config(self):

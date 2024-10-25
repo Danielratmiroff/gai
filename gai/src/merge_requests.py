@@ -129,12 +129,13 @@ def parse_repo_owner(url: str) -> str:
     if not url:
         raise ValueError("Repository URL cannot be empty")
 
-    segments = url.split("/")
+    # Remove trailing and starting slashes
+    segments = url.lstrip("/").rstrip("/").split("/")
 
-    if len(segments) < 2:
+    if len(segments) < 3:
         raise ValueError(f"Invalid repository URL format: {url}")
 
-    owner = segments[0]
+    owner = segments[1]
     if not owner:
         raise ValueError("Repository owner cannot be empty")
 
