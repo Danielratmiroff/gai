@@ -1,17 +1,45 @@
 import argparse
+from dataclasses import dataclass
 import subprocess
 import yaml
 import os
 
 from gai.api import GroqClient, Gitlab_api, Github_api
-from gai.src import DisplayChoices, Commit, Prompts, Merge_requests
+from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManager, get_app_name
 
 
 class Main:
-    model = None
-    temperature = None
-    max_tokens = None
-    target_branch = None
+    def run(self):
+        self.args = self.parse_arguments()
+
+        self.Commit = Commit()
+        self.Prompt = Prompts()
+        self.DisplayChoices = DisplayChoices()
+
+        self.Gitlab = Gitlab_api()
+        self.Github = Github_api()
+
+        self.load_config()
+        self.init_groq_client()
+
+        if self.args.command == 'merge':
+            self.do_merge_request()
+        elif self.args.command == 'commit':
+            self.do_commit()
+        else:
+            print("Please specify a command: merge or commit")
+
+    def load_config(self):
+        config_manager = ConfigManager(get_app_name())
+
+        # TODO: refactor this to write to config file and store
+        self.model = self.args.model or config_manager.get_config('model')
+        self.temperature = self.args.temperature or config_manager.get_config(
+            'temperature')
+        self.max_tokens = self.args.max_tokens or config_manager.get_config(
+            'max_tokens')
+        self.target_branch = self.args.target_branch or config_manager.get_config(
+            'target_branch')
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(
@@ -45,15 +73,6 @@ class Main:
 
         return parser.parse_args()
 
-    def load_config(self):
-        with open("gai/config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-
-        self.model = self.args.model or config['model']
-        self.temperature = self.args.temperature or config['temperature']
-        self.max_tokens = self.args.max_tokens or config['max_tokens']
-        self.target_branch = self.args.target_branch or config['target_branch']
-
     def init_groq_client(self):
         self.groq_chat_client = GroqClient(
             model=self.model,
@@ -66,7 +85,7 @@ class Main:
         remote_repo = self.args.remote or "origin"
         Merge_requests.initialize(remote_name=remote_repo)
 
-        mr = Merge_requests()
+        mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()
 
@@ -120,26 +139,6 @@ class Main:
 
         print("selected_commit", selected_commit)
         self.Commit.commit_changes(selected_commit)
-
-    def run(self):
-        self.args = self.parse_arguments()
-
-        self.Commit = Commit()
-        self.Prompt = Prompts()
-        self.DisplayChoices = DisplayChoices()
-
-        self.Gitlab = Gitlab_api()
-        self.Github = Github_api()
-
-        self.load_config()
-        self.init_groq_client()
-
-        if self.args.command == 'merge':
-            self.do_merge_request()
-        elif self.args.command == 'commit':
-            self.do_commit()
-        else:
-            print("Please specify a command: merge or commit")
 
 
 def main():

@@ -3,6 +3,8 @@ name: Python Pytest
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
   test:
@@ -31,4 +33,4 @@ jobs:
 
       - name: Run Pytest
         run: |
-          pytest
+          pytest -v

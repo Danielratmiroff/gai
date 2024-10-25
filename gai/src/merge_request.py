@@ -3,18 +3,25 @@ from typing import Dict
 
 
 class Merge_requests:
-    _instance = None
-    remote_name = "origin"
+    def __init__(self, remote_name="origin"):
+        self.remote_name = remote_name
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(Merge_requests, cls).__new__(cls)
+    @classmethod
+    def get_instance(cls, remote_name="origin"):
+        """
+        Factory method to get or create singleton instance
+        """
+        if not hasattr(cls, '_instance'):
+            cls._instance = cls(remote_name)
         return cls._instance
 
     @classmethod
     def initialize(cls, remote_name: str):
-        cls.remote_name = remote_name
-        return cls()
+        """
+        Initialize or reinitialize the singleton instance
+        """
+        cls._instance = cls(remote_name)
+        return cls._instance
 
     def get_repo_owner_from_remote_url(self) -> str:
         remote_url = self.git_repo_url()
@@ -31,13 +38,20 @@ class Merge_requests:
         except IndexError:
             return "Error: Unable to get repo owner."
 
+    # Extract the domain from the Git URL
     def get_remote_url(self) -> str:
         remote_url = self.git_repo_url()
 
         try:
-            return remote_url.split(":")[0].split("@")[1]
+            if remote_url.startswith("git@"):
+                domain = remote_url.split("@")[1].split(":")[0]
+
+            elif remote_url.startswith("https://"):
+                domain = remote_url.split("//")[1].split("/")[0]
+
+            return domain
         except IndexError:
-            return "Error: Unable to get repo owner."
+            return "Error: Unable to get remote URL."
 
     def git_repo_url(self) -> str:
         try:
@@ -47,6 +61,7 @@ class Merge_requests:
                 text=True,
                 check=True
             )
+
             return result.stdout.strip()
 
         except subprocess.CalledProcessError:
