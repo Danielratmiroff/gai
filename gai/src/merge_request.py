@@ -49,8 +49,6 @@ class Merge_requests:
             elif remote_url.startswith("https://"):
                 domain = remote_url.split("//")[1].split("/")[0]
 
-            raise ValueError(f"Unsupported Git URL format ${remote_url}")
-
             return domain
         except IndexError:
             return "Error: Unable to get remote URL."
