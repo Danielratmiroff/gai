@@ -12,7 +12,7 @@ def mock_merge_requests():
     """
     Fixture to mock the Merge_requests class in gai.src.
     """
-    with patch('gai.src.merge_request.Merge_requests') as MockMergeRequests:
+    with patch('gai.src.merge_requests.Merge_requests') as MockMergeRequests:
         mock_instance = MagicMock()
 
         MockMergeRequests.return_value = mock_instance
@@ -102,6 +102,25 @@ def test_get_current_branch(gitlab_api):
         assert current_branch == 'feature-branch'
 
 
+def test_construct_project_url_https(gitlab_api, mock_merge_requests):
+    """
+    Test the construct_project_url method to ensure it constructs the correct project URL
+    when the stdout returns an HTTPS repo URL.
+    """
+
+    # Given
+    with patch('gai.api.gitlab_api.subprocess.run') as mock_subprocess_run:
+        mock_result = MagicMock()
+        mock_result.stdout = 'https://gitlab.com/owner/repo.git\n'
+        mock_subprocess_run.return_value = mock_result
+
+        # When
+        project_url = gitlab_api.construct_project_url()
+
+        # Then
+        assert project_url == 'owner%2Frepo'
+
+
 def test_construct_project_url(gitlab_api, mock_merge_requests):
     """
     Test the construct_project_url method to ensure it constructs the correct project URL.
@@ -125,7 +144,7 @@ def test_create_merge_request_success(gitlab_api, mock_merge_requests):
     Test the create_merge_request method for a successful merge request creation.
     """
     # Given
-    with patch('gai.src.merge_request.subprocess.run') as mock_subprocess_run:
+    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
         mock_result = MagicMock()
         # Simulate the output of the command
         mock_result.stdout = 'git@gitlab.com:owner/repo.git'
@@ -169,9 +188,9 @@ def test_create_merge_request_failure(gitlab_api, mock_merge_requests):
     Test the create_merge_request method when merge request creation fails.
     """
     # Given
-    with patch('gai.src.merge_request.subprocess.run') as mock_subprocess_run:
+    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
         mock_result = MagicMock()
-        # Simulate the output of the command
+
         mock_result.stdout = 'git@gitlab.com:owner/repo.git'
         mock_subprocess_run.return_value = mock_result
 

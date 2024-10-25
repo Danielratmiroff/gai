@@ -41,17 +41,7 @@ class Merge_requests:
     # Extract the domain from the Git URL
     def get_remote_url(self) -> str:
         remote_url = self.git_repo_url()
-
-        try:
-            if remote_url.startswith("git@"):
-                domain = remote_url.split("@")[1].split(":")[0]
-
-            elif remote_url.startswith("https://"):
-                domain = remote_url.split("//")[1].split("/")[0]
-
-            return domain
-        except IndexError:
-            return "Error: Unable to get remote URL."
+        return remote_url.split("/")[0]
 
     def git_repo_url(self) -> str:
         try:
@@ -60,9 +50,15 @@ class Merge_requests:
                 capture_output=True,
                 text=True,
                 check=True
-            )
+            ).stdout.strip()
 
-            return result.stdout.strip()
+            if result.startswith("git@"):
+                url = result.split("@")[1].replace(":", "/")
+
+            elif result.startswith("https://"):
+                url = result.split("//")[1]
+
+            return url
 
         except subprocess.CalledProcessError:
             return "Error: Unable to get remote URL. Make sure you're in a git repository."

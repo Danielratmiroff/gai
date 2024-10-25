@@ -13,7 +13,7 @@ def mock_merge_requests():
     """
     Fixture to mock the Merge_requests class in gai.src.
     """
-    with patch('gai.src.merge_request.Merge_requests') as MockMergeRequests:
+    with patch('gai.src.merge_requests.Merge_requests') as MockMergeRequests:
         mock_instance = MagicMock()
         mock_instance.git_repo_url.return_value = 'git@gitlab.com:owner/repo.git'
         mock_instance.get_remote_url.return_value = 'gitlab.com'  # Add explicit return value
@@ -102,7 +102,7 @@ def test_create_pull_request_success(github_api, mock_merge_requests):
     Test the create_pull_request method for a successful pull request creation.
     """
     # Given
-    with patch('gai.src.merge_request.subprocess.run') as mock_subprocess_run:
+    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
         mock_result = MagicMock()
         # Simulate the output of the command
         mock_result.stdout = 'git@github.com:owner/repo.git'
@@ -151,7 +151,7 @@ def test_create_pull_request_failure(github_api, mock_merge_requests):
     Test the create_pull_request method when pull request creation fails.
     """
     # Given
-    with patch('gai.src.merge_request.subprocess.run') as mock_subprocess_run:
+    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
         mock_result = MagicMock()
         # Simulate the output of the command
         mock_result.stdout = 'git@github.com:owner/repo.git'
