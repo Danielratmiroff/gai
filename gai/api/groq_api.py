@@ -13,7 +13,10 @@ class GroqClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
+        print("model: ", self.model)
+
     def get_chat_completion(self, user_message):
+        print("model: ", self.model)
         chat_completion = self.client.chat.completions.create(
             messages=[
                 {

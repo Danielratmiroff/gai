@@ -5,7 +5,7 @@ import yaml
 import os
 
 from gai.api import GroqClient, Gitlab_api, Github_api
-from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManager, get_app_name
+from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManager, get_app_name, Utils
 
 
 class Main:
@@ -15,6 +15,7 @@ class Main:
         self.Commit = Commit()
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
+        self.Utils = Utils()
 
         self.Gitlab = Gitlab_api()
         self.Github = Github_api()
@@ -24,7 +25,7 @@ class Main:
 
         if self.args.command == 'merge':
             if self.args.push:
-                self.push_changes()
+                self.Utils.push_changes(self.remote_repo)
 
             self.do_merge_request()
 
@@ -49,29 +50,26 @@ class Main:
         self.remote_repo = getattr(self.args, 'remote', 'origin')
 
     def parse_arguments(self):
-        parser = argparse.ArgumentParser(
-            description="Git-AI (gai): Automate your git messages")
+        parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
 
         # Helper text
-        subparsers = parser.add_subparsers(
-            dest='command', help='Available commands')
+        subparsers = parser.add_subparsers(dest='command',
+                                           help='Available commands')
 
         # Merge request
-        merge_parser = subparsers.add_parser(
-            'merge', help='Execute an automated merge request')
+        merge_parser = subparsers.add_parser('merge',
+                                             help='Execute an automated merge request')
 
-        merge_parser.add_argument(
-            'remote', nargs='?', help='Specify the remote git url (e.g., origin, upstream)')
+        merge_parser.add_argument('remote', nargs='?',
+                                  help='Specify the remote git url (e.g., origin, upstream)')
 
-        merge_parser.add_argument(
-            '--push', '-p', action='store_true', help='Push changes to remote after creating merge request')
-
+        merge_parser.add_argument('--push', '-p', action='store_true',
+                                  help='Push changes to remote after creating merge request')
         # Commit
-        commit_parser = subparsers.add_parser(
-            'commit', help='Execute an automated commit')
+        commit_parser = subparsers.add_parser('commit', help='Execute an automated commit')
 
-        commit_parser.add_argument(
-            '--all', '-a', action='store_true', help='Stage all changes before committing')
+        commit_parser.add_argument('--all', '-a', action='store_true',
+                                   help='Stage all changes before committing')
 
         # Common arguments
         for p in [merge_parser, commit_parser]:
@@ -94,9 +92,6 @@ class Main:
             max_tokens=self.max_tokens
         )
 
-    def push_changes(self):
-        subprocess.run(["git", "push", self.remote_repo])
-
     def do_merge_request(self):
         # Initialize singleton
         Merge_requests.initialize(remote_name=self.remote_repo)
@@ -104,14 +99,16 @@ class Main:
         mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()
+        current_branch = self.Utils.get_current_branch()
 
-        commits = mr.get_commits(
+        commits = self.Commit.get_commits(
+            remote_repo=self.remote_repo,
             target_branch=self.target_branch,
-            source_branch=self.Gitlab.get_current_branch())  # TODO: fix this func
+            source_branch=current_branch)
 
         prompt = self.Prompt.build_merge_request_title_prompt(commits)
 
-        description = mr.format_commits(commits)
+        description = self.Commit.format_commits(commits)
 
         print(prompt)
         print(f"token count: {len(prompt.split())}")
