@@ -50,18 +50,17 @@ class Merge_requests:
         remote_url = self.git_repo_url()
         return remote_url.split("/")[0]
 
-    """
-    Gets the remote URL of the current git repository and returns it in the format "domain/owner/repo.git".
-
-    Sample remote URL:
-        git@github.com:user/repo.git or https://github.com:user/repo.git
-
-    Returns:
-        "github.com/user/repo.git"
-
-    """
-
     def git_repo_url(self) -> str:
+        """
+        Gets the remote URL of the current git repository and returns it in the format "domain/owner/repo.git".
+
+        Sample remote URL:
+            git@github.com:user/repo.git or https://github.com:user/repo.git
+
+        Returns:
+            "github.com/user/repo.git"
+
+        """
         try:
             result = subprocess.run(
                 ["git", "remote", "get-url", self.remote_name],
@@ -92,6 +91,7 @@ class Merge_requests:
         else:
             return "Error: Unable to determine platform from remote URL. Only github and gitlab are supported."
 
+    # TODO: this should be in commit class
     def format_commits(self, result: str) -> str:
         commits = result.split('\n')
         formatted_commits = [f"- {commit}" for commit in commits]

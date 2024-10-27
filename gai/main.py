@@ -23,7 +23,11 @@ class Main:
         self.init_groq_client()
 
         if self.args.command == 'merge':
+            if self.args.push:
+                self.push_changes()
+
             self.do_merge_request()
+
         elif self.args.command == 'commit':
             self.do_commit()
         else:
@@ -32,7 +36,7 @@ class Main:
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
 
-        # TODO: refactor this to write to config file and store
+        # AI model arguments
         self.model = self.args.model or config_manager.get_config('model')
         self.temperature = self.args.temperature or config_manager.get_config(
             'temperature')
@@ -40,6 +44,9 @@ class Main:
             'max_tokens')
         self.target_branch = self.args.target_branch or config_manager.get_config(
             'target_branch')
+
+        # Other arguments
+        self.remote_repo = getattr(self.args, 'remote', 'origin')
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(
@@ -56,6 +63,9 @@ class Main:
         merge_parser.add_argument(
             'remote', nargs='?', help='Specify the remote git url (e.g., origin, upstream)')
 
+        merge_parser.add_argument(
+            '--push', '-p', action='store_true', help='Push changes to remote after creating merge request')
+
         # Commit
         commit_parser = subparsers.add_parser(
             'commit', help='Execute an automated commit')
@@ -65,6 +75,7 @@ class Main:
 
         # Common arguments
         for p in [merge_parser, commit_parser]:
+            # AI model arguments
             p.add_argument('--model', '-mo', type=str,
                            help='Override the model specified in config')
             p.add_argument('--temperature', '-t', type=float,
@@ -83,10 +94,12 @@ class Main:
             max_tokens=self.max_tokens
         )
 
+    def push_changes(self):
+        subprocess.run(["git", "push", self.remote_repo])
+
     def do_merge_request(self):
         # Initialize singleton
-        remote_repo = self.args.remote or "origin"
-        Merge_requests.initialize(remote_name=remote_repo)
+        Merge_requests.initialize(remote_name=self.remote_repo)
 
         mr = Merge_requests().get_instance()
 
