@@ -109,9 +109,13 @@ class Main:
         print(prompt)
         print(f"token count: {len(prompt.split())}")
 
-        selected_title = self.DisplayChoices.render_choices_with_try_again(
-            prompt=prompt,
-            ai_client=self.groq_chat_client.get_chat_completion)
+        try:
+            selected_title = self.DisplayChoices.render_choices_with_try_again(
+                prompt=prompt,
+                ai_client=self.groq_chat_client.get_chat_completion)
+        except Exception:
+            print("Exiting...")
+            return
 
         print("Creating merge request with...")
         print(f"Title: {selected_title}")
@@ -145,9 +149,13 @@ class Main:
         # print(build_prompt)
         print(f"Token count: {len(prompt.split())}")
 
-        selected_commit = self.DisplayChoices.render_choices_with_try_again(
-            prompt=prompt,
-            ai_client=self.groq_chat_client.get_chat_completion)
+        try:
+            selected_commit = self.DisplayChoices.render_choices_with_try_again(
+                prompt=prompt,
+                ai_client=self.groq_chat_client.get_chat_completion)
+        except Exception:
+            print("Exiting...")
+            return
 
         print("selected_commit", selected_commit)
         self.Commits.commit_changes(selected_commit)

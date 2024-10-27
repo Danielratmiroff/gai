@@ -41,8 +41,7 @@ class DisplayChoices:
             print(f"selection {choice}")
 
         if choice == OPTIONS["EXIT"]:
-            print("Exiting...")
-            return
+            raise Exception("User exited")
 
         return choice
 
