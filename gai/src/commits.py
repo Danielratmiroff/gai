@@ -2,9 +2,7 @@ import os
 import subprocess
 
 
-class Commit:
-    model = None
-
+class Commits:
     def __init__(self):
         self.diff_cmd = "git --no-pager diff --cached --ignore-space-change"
         self.show_committed_cmd = "git diff --cached --name-only"

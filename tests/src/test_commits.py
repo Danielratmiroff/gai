@@ -2,7 +2,7 @@ import pytest
 import subprocess
 from unittest.mock import patch, Mock
 
-from gai.src.commit import Commit
+from gai.src.commits import Commits
 
 # --------------------------
 # Fixtures
@@ -15,7 +15,7 @@ def mock_subprocess_run_success():
     Fixture to mock subprocess.run for successful executions.
     Returns a mock that can be configured per test.
     """
-    with patch('gai.src.commit.subprocess.run') as mock_run:
+    with patch('gai.src.commits.subprocess.run') as mock_run:
         yield mock_run
 
 
@@ -24,7 +24,7 @@ def mock_subprocess_run_failure():
     """
     Fixture to mock subprocess.run to raise CalledProcessError.
     """
-    with patch('gai.src.commit.subprocess.run') as mock_run:
+    with patch('gai.src.commits.subprocess.run') as mock_run:
         mock_run.side_effect = subprocess.CalledProcessError(
             1, ['git', 'command'])
         yield mock_run
@@ -35,7 +35,7 @@ def commit_instance():
     """
     Fixture to provide a fresh instance of Commit for tests.
     """
-    return Commit()
+    return Commits()
 
 # --------------------------
 # Helper Functions

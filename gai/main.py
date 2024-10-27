@@ -5,17 +5,16 @@ import yaml
 import os
 
 from gai.api import GroqClient, Gitlab_api, Github_api
-from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManager, get_app_name, Utils
+from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes
 
 
 class Main:
     def run(self):
         self.args = self.parse_arguments()
 
-        self.Commit = Commit()
+        self.Commits = Commits()
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
-        self.Utils = Utils()
 
         self.Gitlab = Gitlab_api()
         self.Github = Github_api()
@@ -25,7 +24,7 @@ class Main:
 
         if self.args.command == 'merge':
             if self.args.push:
-                self.Utils.push_changes(self.remote_repo)
+                push_changes(self.remote_repo)
 
             self.do_merge_request()
 
@@ -38,16 +37,13 @@ class Main:
         config_manager = ConfigManager(get_app_name())
 
         # AI model arguments
-        self.model = self.args.model or config_manager.get_config('model')
-        self.temperature = self.args.temperature or config_manager.get_config(
-            'temperature')
-        self.max_tokens = self.args.max_tokens or config_manager.get_config(
-            'max_tokens')
-        self.target_branch = self.args.target_branch or config_manager.get_config(
-            'target_branch')
+        self.model = get_attr_or_default(self.args, 'model', config_manager.get_config('model'))
+        self.temperature = get_attr_or_default(self.args, 'temperature', config_manager.get_config('temperature'))
+        self.max_tokens = get_attr_or_default(self.args, 'max_tokens', config_manager.get_config('max_tokens'))
+        self.target_branch = get_attr_or_default(self.args, 'target_branch', config_manager.get_config('target_branch'))
 
         # Other arguments
-        self.remote_repo = getattr(self.args, 'remote', 'origin')
+        self.remote_repo = get_attr_or_default(self.args, 'remote', 'origin')
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
@@ -99,16 +95,16 @@ class Main:
         mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()
-        current_branch = self.Utils.get_current_branch()
+        current_branch = get_current_branch()
 
-        commits = self.Commit.get_commits(
+        commits = self.Commits.get_commits(
             remote_repo=self.remote_repo,
             target_branch=self.target_branch,
             source_branch=current_branch)
 
         prompt = self.Prompt.build_merge_request_title_prompt(commits)
 
-        description = self.Commit.format_commits(commits)
+        description = self.Commits.format_commits(commits)
 
         print(prompt)
         print(f"token count: {len(prompt.split())}")
@@ -139,9 +135,9 @@ class Main:
 
     def do_commit(self):
         if self.args.all:
-            self.Commit.stage_changes()
+            self.Commits.stage_changes()
 
-        git_diffs = self.Commit.get_diffs()
+        git_diffs = self.Commits.get_diffs()
 
         prompt = self.Prompt.build_commit_message_prompt(
             git_diffs)
@@ -154,7 +150,7 @@ class Main:
             ai_client=self.groq_chat_client.get_chat_completion)
 
         print("selected_commit", selected_commit)
-        self.Commit.commit_changes(selected_commit)
+        self.Commits.commit_changes(selected_commit)
 
 
 def main():
