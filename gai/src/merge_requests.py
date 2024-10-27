@@ -50,18 +50,17 @@ class Merge_requests:
         remote_url = self.git_repo_url()
         return remote_url.split("/")[0]
 
-    """
-    Gets the remote URL of the current git repository and returns it in the format "domain/owner/repo.git".
-
-    Sample remote URL:
-        git@github.com:user/repo.git or https://github.com:user/repo.git
-
-    Returns:
-        "github.com/user/repo.git"
-
-    """
-
     def git_repo_url(self) -> str:
+        """
+        Gets the remote URL of the current git repository and returns it in the format "domain/owner/repo.git".
+
+        Sample remote URL:
+            git@github.com:user/repo.git or https://github.com:user/repo.git
+
+        Returns:
+            "github.com/user/repo.git"
+
+        """
         try:
             result = subprocess.run(
                 ["git", "remote", "get-url", self.remote_name],
@@ -92,34 +91,9 @@ class Merge_requests:
         else:
             return "Error: Unable to determine platform from remote URL. Only github and gitlab are supported."
 
-    def format_commits(self, result: str) -> str:
-        commits = result.split('\n')
-        formatted_commits = [f"- {commit}" for commit in commits]
-        return "Changes:\n" + "\n".join(formatted_commits)
-
-    def get_commits(self, target_branch: str, source_branch: str) -> str:
-        try:
-            print("Fetching latest commits from remote...")
-            subprocess.run(["git", "fetch", self.remote_name],
-                           check=True, capture_output=True)
-
-            result = subprocess.run(
-                ["git", "log", "--oneline",
-                    f"{self.remote_name}/{target_branch}..{source_branch}"],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-
-            if result.returncode != 0:
-                raise subprocess.CalledProcessError(
-                    result.returncode, result.args, result.stdout, result.stderr)
-
-            return result.stdout.strip()
-
-        except subprocess.CalledProcessError as e:
-
-            return f"Error fetching commits: {e}"
+############################################################################################################
+# Helper functions
+############################################################################################################
 
 
 def parse_repo_owner(url: str) -> str:

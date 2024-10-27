@@ -5,14 +5,14 @@ import yaml
 import os
 
 from gai.api import GroqClient, Gitlab_api, Github_api
-from gai.src import DisplayChoices, Commit, Prompts, Merge_requests, ConfigManager, get_app_name
+from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes
 
 
 class Main:
     def run(self):
         self.args = self.parse_arguments()
 
-        self.Commit = Commit()
+        self.Commits = Commits()
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
 
@@ -23,7 +23,11 @@ class Main:
         self.init_groq_client()
 
         if self.args.command == 'merge':
+            if self.args.push:
+                push_changes(self.remote_repo)
+
             self.do_merge_request()
+
         elif self.args.command == 'commit':
             self.do_commit()
         else:
@@ -32,36 +36,40 @@ class Main:
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
 
-        # TODO: refactor this to write to config file and store
-        self.model = self.args.model or config_manager.get_config('model')
-        self.temperature = self.args.temperature or config_manager.get_config(
-            'temperature')
-        self.max_tokens = self.args.max_tokens or config_manager.get_config(
-            'max_tokens')
-        self.target_branch = self.args.target_branch or config_manager.get_config(
-            'target_branch')
+        # AI model arguments
+        self.model = get_attr_or_default(self.args, 'model', config_manager.get_config('model'))
+        self.temperature = get_attr_or_default(self.args, 'temperature', config_manager.get_config('temperature'))
+        self.max_tokens = get_attr_or_default(self.args, 'max_tokens', config_manager.get_config('max_tokens'))
+        self.target_branch = get_attr_or_default(self.args, 'target_branch', config_manager.get_config('target_branch'))
+
+        # Other arguments
+        self.remote_repo = get_attr_or_default(self.args, 'remote', 'origin')
 
     def parse_arguments(self):
-        parser = argparse.ArgumentParser(
-            description="Git-AI (gai): Automate your git messages")
+        parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
 
         # Helper text
-        subparsers = parser.add_subparsers(
-            dest='command', help='Available commands')
+        subparsers = parser.add_subparsers(dest='command',
+                                           help='Available commands')
 
         # Merge request
-        merge_parser = subparsers.add_parser(
-            'merge', help='Execute an automated merge request')
+        merge_parser = subparsers.add_parser('merge',
+                                             help='Execute an automated merge request')
 
-        merge_parser.add_argument(
-            'remote', nargs='?', help='Specify the remote git url (e.g., origin, upstream)')
+        merge_parser.add_argument('remote', nargs='?',
+                                  help='Specify the remote git url (e.g., origin, upstream)')
 
+        merge_parser.add_argument('--push', '-p', action='store_true',
+                                  help='Push changes to remote after creating merge request')
         # Commit
-        commit_parser = subparsers.add_parser(
-            'commit', help='Execute an automated commit')
+        commit_parser = subparsers.add_parser('commit', help='Execute an automated commit')
+
+        commit_parser.add_argument('--all', '-a', action='store_true',
+                                   help='Stage all changes before committing')
 
         # Common arguments
         for p in [merge_parser, commit_parser]:
+            # AI model arguments
             p.add_argument('--model', '-mo', type=str,
                            help='Override the model specified in config')
             p.add_argument('--temperature', '-t', type=float,
@@ -82,27 +90,32 @@ class Main:
 
     def do_merge_request(self):
         # Initialize singleton
-        remote_repo = self.args.remote or "origin"
-        Merge_requests.initialize(remote_name=remote_repo)
+        Merge_requests.initialize(remote_name=self.remote_repo)
 
         mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()
+        current_branch = get_current_branch()
 
-        commits = mr.get_commits(
+        commits = self.Commits.get_commits(
+            remote_repo=self.remote_repo,
             target_branch=self.target_branch,
-            source_branch=self.Gitlab.get_current_branch())  # TODO: fix this func
+            source_branch=current_branch)
 
         prompt = self.Prompt.build_merge_request_title_prompt(commits)
 
-        description = mr.format_commits(commits)
+        description = self.Commits.format_commits(commits)
 
         print(prompt)
         print(f"token count: {len(prompt.split())}")
 
-        selected_title = self.DisplayChoices.render_choices_with_try_again(
-            prompt=prompt,
-            ai_client=self.groq_chat_client.get_chat_completion)
+        try:
+            selected_title = self.DisplayChoices.render_choices_with_try_again(
+                prompt=prompt,
+                ai_client=self.groq_chat_client.get_chat_completion)
+        except Exception:
+            print("Exiting...")
+            return
 
         print("Creating merge request with...")
         print(f"Title: {selected_title}")
@@ -125,7 +138,10 @@ class Main:
                     "Platform not supported. Only github and gitlab are supported.")
 
     def do_commit(self):
-        git_diffs = self.Commit.get_diffs()
+        if self.args.all:
+            self.Commits.stage_changes()
+
+        git_diffs = self.Commits.get_diffs()
 
         prompt = self.Prompt.build_commit_message_prompt(
             git_diffs)
@@ -133,12 +149,16 @@ class Main:
         # print(build_prompt)
         print(f"Token count: {len(prompt.split())}")
 
-        selected_commit = self.DisplayChoices.render_choices_with_try_again(
-            prompt=prompt,
-            ai_client=self.groq_chat_client.get_chat_completion)
+        try:
+            selected_commit = self.DisplayChoices.render_choices_with_try_again(
+                prompt=prompt,
+                ai_client=self.groq_chat_client.get_chat_completion)
+        except Exception:
+            print("Exiting...")
+            return
 
         print("selected_commit", selected_commit)
-        self.Commit.commit_changes(selected_commit)
+        self.Commits.commit_changes(selected_commit)
 
 
 def main():

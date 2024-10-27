@@ -64,5 +64,5 @@ def get_app_name():
 
 if __name__ == "__main__":
     config_manager = ConfigManager(get_app_name())
-    target_branch = config_manager.get_config('target_branch')
+    target_branch = config_manager.get_config('model')
     print(f"Target branch: {target_branch}")
