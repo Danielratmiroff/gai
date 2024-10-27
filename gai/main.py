@@ -5,7 +5,7 @@ import yaml
 import os
 
 from gai.api import GroqClient, Gitlab_api, Github_api
-from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes
+from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined
 
 
 class Main:
@@ -30,6 +30,11 @@ class Main:
 
         elif self.args.command == 'commit':
             self.do_commit()
+
+        if attr_is_defined(self.args, 'version'):
+            print(f"v{get_package_version(get_app_name())}")
+            return
+
         else:
             print("Please specify a command: merge or commit")
 
@@ -47,6 +52,10 @@ class Main:
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
+
+        # Version
+        parser.add_argument('-v', '--version', action='store_true',
+                            help='Display the version of the tool')
 
         # Helper text
         subparsers = parser.add_subparsers(dest='command',
