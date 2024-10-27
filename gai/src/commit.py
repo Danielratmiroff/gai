@@ -8,7 +8,6 @@ class Commit:
     def __init__(self):
         self.diff_cmd = "git --no-pager diff --cached --ignore-space-change"
         self.show_committed_cmd = "git diff --cached --name-only"
-        pass
 
     def get_diffs(self) -> str:
         try:
@@ -31,3 +30,7 @@ class Commit:
         # Print committed changes
         os.system(self.show_committed_cmd)
         print("Changes committed successfully")
+
+    def stage_changes(self):
+        print(f"Staging changes")
+        os.system("git add .")

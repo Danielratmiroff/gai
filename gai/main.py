@@ -60,6 +60,9 @@ class Main:
         commit_parser = subparsers.add_parser(
             'commit', help='Execute an automated commit')
 
+        commit_parser.add_argument(
+            '--all', '-a', action='store_true', help='Stage all changes before committing')
+
         # Common arguments
         for p in [merge_parser, commit_parser]:
             p.add_argument('--model', '-mo', type=str,
@@ -125,6 +128,9 @@ class Main:
                     "Platform not supported. Only github and gitlab are supported.")
 
     def do_commit(self):
+        if self.args.all:
+            self.Commit.stage_changes()
+
         git_diffs = self.Commit.get_diffs()
 
         prompt = self.Prompt.build_commit_message_prompt(

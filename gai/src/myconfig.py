@@ -60,9 +60,3 @@ def get_app_name():
         return pyproject['project']['name']
     except (FileNotFoundError, KeyError):
         return "gai-tool"
-
-
-if __name__ == "__main__":
-    config_manager = ConfigManager(get_app_name())
-    target_branch = config_manager.get_config('target_branch')
-    print(f"Target branch: {target_branch}")
