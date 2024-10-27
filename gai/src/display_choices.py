@@ -3,6 +3,7 @@ from typing import Dict
 from pick import pick
 
 OPTIONS: Dict[str, str] = {
+    "START": "start",
     "TRY_AGAIN": "> Try again",
     "EXIT": "> Exit"
 }
@@ -31,14 +32,14 @@ class DisplayChoices:
         return option
 
     def render_choices_with_try_again(self, prompt: str, ai_client: callable) -> str:
-        choice = ""
+        choice = OPTIONS["START"]
 
-        while choice == OPTIONS["TRY_AGAIN"] or choice == "":
+        while choice == OPTIONS["TRY_AGAIN"] or choice == OPTIONS["START"]:
             response = ai_client(prompt)
-            print(f"response: {response}")
-            # refactor to use something prettier than "run"
+            print(f"Prompt response: {response}")
+
             choice = self.run(response)
-            print(f"selection {choice}")
+            print(f"Selection {choice}")
 
         if choice == OPTIONS["EXIT"]:
             raise Exception("User exited")
