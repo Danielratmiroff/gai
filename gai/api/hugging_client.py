@@ -17,12 +17,12 @@ class HuggingClient:
         self.max_tokens = max_tokens
 
     def adjust_max_tokens(self, user_message) -> int:
+        print(f"max_tokens: {self.max_tokens} user_message: {len(user_message)}")
         return self.max_tokens - len(user_message)
 
     def get_chat_completion(self, user_message):
         adjusted_max_tokens = self.adjust_max_tokens(user_message)
 
-        print(f"user_message: {user_message}")
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[

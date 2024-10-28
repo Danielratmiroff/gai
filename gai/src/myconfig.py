@@ -4,12 +4,23 @@ from pathlib import Path
 import yaml
 
 DEFAULT_CONFIG = {
+    'interface': 'groq',
     'model': 'llama-3.1-8b-instant',
     'max_tokens': 8000,
     'temperature': 1,
     'target_branch': 'master',
     'assignee_id': 10437754,
 }
+
+GROQ_MODELS = [
+    'llama-3.1-8b-instant',
+]
+
+HUGGING_FACE_MODELS = [
+    # 'Qwen/Qwen2.5-1.5B-Instruct'
+    'microsoft/Phi-3.5-mini-instruct'
+    # 'meta-llama/Meta-Llama-3-8B-Instruct',
+]
 
 
 class ConfigManager:

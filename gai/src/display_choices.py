@@ -16,10 +16,14 @@ class DisplayChoices:
 
     def parse_response(self, response: str) -> list:
         try:
-            return ast.literal_eval(response)
+            result = ast.literal_eval(response)
+            if not isinstance(result, list):
+                raise ValueError("Response must evaluate to a list")
+            return result
         except (ValueError, SyntaxError) as e:
+            print(f"Debug - Response that failed parsing: {repr(response)}")  # Show exact string content
             raise ValueError(
-                "\n\nFailed to get list of choices, did you stage your changes?") from e
+                f"\n\nFailed to parse response into list. Error: {str(e)}") from e
 
     def display_choices(self, items: list, title="Please select an option:"):
         items_refined = items + [OPTIONS["TRY_AGAIN"], OPTIONS["EXIT"]]
