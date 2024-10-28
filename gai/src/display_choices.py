@@ -16,10 +16,14 @@ class DisplayChoices:
 
     def parse_response(self, response: str) -> list:
         try:
-            return ast.literal_eval(response)
+            result = ast.literal_eval(response)
+            if not isinstance(result, list):
+                raise ValueError("Response must evaluate to a list")
+            return result
         except (ValueError, SyntaxError) as e:
+            print(f"Debug - Response that failed parsing: {repr(response)}")  # Show exact string content
             raise ValueError(
-                "\n\nFailed to get list of choices, did you stage your changes?") from e
+                f"\n\nFailed to parse response into list. Error: {str(e)}") from e
 
     def display_choices(self, items: list, title="Please select an option:"):
         items_refined = items + [OPTIONS["TRY_AGAIN"], OPTIONS["EXIT"]]
@@ -31,11 +35,14 @@ class DisplayChoices:
                          min_selection_count=1)
         return option
 
-    def render_choices_with_try_again(self, prompt: str, ai_client: callable) -> str:
+    def render_choices_with_try_again(self, user_msg: str, ai_client: callable, sys_prompt: str) -> str:
         choice = OPTIONS["START"]
 
         while choice == OPTIONS["TRY_AGAIN"] or choice == OPTIONS["START"]:
-            response = ai_client(prompt)
+            response = ai_client(
+                user_message=user_msg,
+                system_prompt=sys_prompt
+            )
             print(f"Prompt response: {response}")
 
             choice = self.run(response)

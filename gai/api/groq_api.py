@@ -1,6 +1,8 @@
 import os
 from groq import Groq
 
+from gai.src import Prompts, print_tokens
+
 
 class GroqClient:
     def __init__(self,
@@ -13,9 +15,19 @@ class GroqClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
-    def get_chat_completion(self, user_message):
+    def get_system_prompt(self):
+        return Prompts().build_commit_message_system_prompt()
+
+    def get_chat_completion(self, user_message, system_prompt):
+
+        print_tokens(system_prompt, user_message, self.max_tokens)
+
         chat_completion = self.client.chat.completions.create(
             messages=[
+                {
+                    "role": "assistant",
+                    "content": self.get_system_prompt(),
+                },
                 {
                     "role": "user",
                     "content": user_message,

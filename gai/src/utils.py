@@ -1,3 +1,4 @@
+from colorama import Fore, Style
 from importlib.metadata import version, PackageNotFoundError
 
 import subprocess
@@ -45,3 +46,12 @@ def get_package_version(package_name: str) -> str:
         return version(package_name)
     except PackageNotFoundError:
         return "Package not found"
+
+
+def print_tokens(system_prompt, user_message, max_tokens):
+    print("\n" + "="*40)
+    print(f"{Fore.CYAN}System tokens: {len(system_prompt)}{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}User tokens: {len(user_message)}{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}Max tokens: {max_tokens} | Total tokens: {
+        len(user_message) + len(system_prompt)}{Style.RESET_ALL}")
+    print("="*40 + "\n")

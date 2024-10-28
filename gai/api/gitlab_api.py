@@ -38,11 +38,8 @@ class Gitlab_api():
     def create_merge_request(self, title: str, description: str) -> None:
         gitlab_url = self.Merge_requests.get_remote_url()
 
-        print(f"gitlab_url: {gitlab_url}")
         project = self.construct_project_url()
-        print(f"project: {project}")
         api_key = self.get_api_key()
-        print(f"api_key: {api_key}")
         source_branch = self.get_current_branch()
 
         data = {
