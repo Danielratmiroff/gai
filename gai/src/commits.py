@@ -15,7 +15,7 @@ class Commits:
                 capture_output=True,
                 text=True
             )
-            return result.stdout
+            return result.stdout.strip()
         except subprocess.CalledProcessError as e:
             print(f"Error running git diff: {e}")
             return ""

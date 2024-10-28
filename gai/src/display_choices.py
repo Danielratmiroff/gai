@@ -3,7 +3,7 @@ from typing import Dict, List, Callable
 from pick import pick
 
 from gai.src.prompts import Prompts
-from gai.src.utils import create_user_message
+from gai.src.utils import create_user_message, create_system_message
 
 
 OPTIONS: Dict[str, str] = {
@@ -59,6 +59,7 @@ class DisplayChoices:
 
         while choice == OPTIONS["TRY_AGAIN"]:
             try_again_prompt = Prompts().build_try_again_prompt()
+            messages.append(create_system_message(response))
             messages.append(create_user_message(try_again_prompt))
 
             print(f"Try again prompt: {messages}")

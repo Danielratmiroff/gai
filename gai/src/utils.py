@@ -65,5 +65,11 @@ def create_user_message(user_message: str) -> Dict[str, str]:
     """
     Create a user message from the given string.
     """
-    print(f"User message: {user_message}")
     return {"role": "user", "content": user_message}
+
+
+def create_system_message(system_message: str) -> Dict[str, str]:
+    """
+    Create a system message from the given string.
+    """
+    return {"role": "system", "content": system_message}

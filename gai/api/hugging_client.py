@@ -1,8 +1,10 @@
 
 import os
+from typing import Dict, List
 from huggingface_hub import InferenceClient
 
 from gai.src import Prompts, print_tokens
+from gai.src.utils import create_system_message
 
 
 class HuggingClient:
@@ -27,21 +29,20 @@ class HuggingClient:
     def get_system_prompt(self):
         return Prompts().build_commit_message_system_prompt()
 
-    def get_chat_completion(self, user_message, system_prompt):
+    def get_chat_completion(self,
+                            user_message: List[Dict[str, str]],
+                            system_prompt: str
+                            ):
         print_tokens(system_prompt, user_message, self.max_tokens)
 
         adjusted_max_tokens = self.adjust_max_tokens(user_message)
 
+        # Append system prompt to user message
+        system_prompt = create_system_message(system_prompt)
+        messages = [system_prompt] + user_message
+
         response = self.client.chat.completions.create(
-            messages=[
-                {
-                    "role": "system",
-                    "content": self.get_system_prompt()
-                },
-                {
-                    "role": "user",
-                    "content": user_message},
-            ],
+            messages=messages,
             model=self.model,
             max_tokens=adjusted_max_tokens,
             temperature=self.temperature,
