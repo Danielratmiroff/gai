@@ -2,11 +2,8 @@
 import os
 from huggingface_hub import InferenceClient
 
-MAX_API_TOKENS = 8192
-
 
 class HuggingClient:
-
     def __init__(self,
                  model: str,
                  temperature: int,
@@ -20,27 +17,24 @@ class HuggingClient:
         self.max_tokens = max_tokens
 
     def adjust_max_tokens(self, user_message) -> int:
-        input = len(user_message) + self.max_tokens
-        if input > MAX_API_TOKENS:
-            return MAX_API_TOKENS - len(user_message)
+        return self.max_tokens - len(user_message)
 
     def get_chat_completion(self, user_message):
-        include_input_as_max_tokens = self.adjust_max_tokens(user_message)
+        adjusted_max_tokens = self.adjust_max_tokens(user_message)
 
-        output = self.client.chat.completions.create(
+        print(f"user_message: {user_message}")
+        response = self.client.chat.completions.create(
             model=self.model,
             messages=[
+                # TODO: migrate initial prompt to system msg
                 # {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user",
-                 "content": user_message},
+                {"role": "user", "content": user_message},
             ],
-            stream=True,
-            max_tokens=include_input_as_max_tokens,
+            max_tokens=adjusted_max_tokens,
             temperature=self.temperature,
+            stream=False,
         )
-
-        for chunk in output:
-            return chunk.choices[0].delta.content
+        return response.choices[0].message.content
 
     def get_api_key(self):
         api_key = os.environ.get("HUGGING_FACE_TOKEN")

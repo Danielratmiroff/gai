@@ -14,6 +14,8 @@ class GroqClient:
         self.max_tokens = max_tokens
 
     def get_chat_completion(self, user_message):
+        print(f"user_message: {user_message}")
+
         chat_completion = self.client.chat.completions.create(
             messages=[
                 {
