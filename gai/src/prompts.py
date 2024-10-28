@@ -41,7 +41,7 @@ class Prompts:
             </instructions>
           """
 
-    def build_merge_title_system_prompt(self, content: str) -> str:
+    def build_merge_title_system_prompt(self) -> str:
         return f"""<instructions>
 
             You will be provided with a list of git commits from a local branch.
