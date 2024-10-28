@@ -37,12 +37,8 @@ class HuggingClient:
 
         adjusted_max_tokens = self.adjust_max_tokens(user_message)
 
-        # Append system prompt to user message
-        system_prompt = create_system_message(system_prompt)
-        messages = [system_prompt] + user_message
-
         response = self.client.chat.completions.create(
-            messages=messages,
+            messages=user_message,
             model=self.model,
             max_tokens=adjusted_max_tokens,
             temperature=self.temperature,
