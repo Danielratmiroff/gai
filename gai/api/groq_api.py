@@ -1,7 +1,7 @@
 import os
 from groq import Groq
 
-from gai.src.prompts import Prompts
+from gai.src import Prompts, print_tokens
 
 
 class GroqClient:
@@ -20,9 +20,7 @@ class GroqClient:
 
     def get_chat_completion(self, user_message, system_prompt):
 
-        print(f"System token count: {len(self.get_system_prompt())}")
-        print(f"User token count: {len(user_message)}")
-        print(f"Max tokens: {self.max_tokens} Total tokens: {len(user_message) + len(self.get_system_prompt())}")
+        print_tokens(system_prompt, user_message, self.max_tokens)
 
         chat_completion = self.client.chat.completions.create(
             messages=[

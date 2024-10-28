@@ -104,7 +104,9 @@ class Main:
                     temperature=self.temperature,
                     max_tokens=self.max_tokens
                 )
-                self.ConfigManager.update_config('interface', 'huggingface')
+                # Set as default if not already set
+                if self.ConfigManager.get_config('interface') != 'huggingface':
+                    self.ConfigManager.update_config('interface', 'huggingface')
 
             case _:
                 print("Using Groq as ai interface")
@@ -114,8 +116,9 @@ class Main:
                     temperature=self.temperature,
                     max_tokens=self.max_tokens
                 )
-
-                self.ConfigManager.update_config('interface', 'groq')
+                # Set as default if not already set
+                if self.ConfigManager.get_config('interface') != 'groq':
+                    self.ConfigManager.update_config('interface', 'groq')
 
         return client.get_chat_completion
 

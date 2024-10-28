@@ -1,8 +1,9 @@
 
 import os
 from huggingface_hub import InferenceClient
+from colorama import Fore, Style
 
-from gai.src import Prompts
+from gai.src import Prompts, print_tokens
 
 
 class HuggingClient:
@@ -28,11 +29,9 @@ class HuggingClient:
         return Prompts().build_commit_message_system_prompt()
 
     def get_chat_completion(self, user_message, system_prompt):
-        adjusted_max_tokens = self.adjust_max_tokens(user_message)
+        print_tokens(system_prompt, user_message, self.max_tokens)
 
-        print(f"System token count: {len(self.get_system_prompt())}")
-        print(f"User token count: {len(user_message)}")
-        print(f"Max tokens: {self.max_tokens} Total tokens: {len(user_message) + len(self.get_system_prompt())}")
+        adjusted_max_tokens = self.adjust_max_tokens(user_message)
 
         response = self.client.chat.completions.create(
             messages=[
