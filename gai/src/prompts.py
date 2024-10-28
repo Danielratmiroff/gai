@@ -2,6 +2,9 @@ COMMITS_MESSAGES = ""
 
 
 class Prompts:
+    def build_try_again_prompt(self) -> str:
+        return "Previous attempts weren't satisfactory. Please try again."
+
     def build_commit_message_system_prompt(self) -> str:
         return f"""<instructions>
 

@@ -1,3 +1,4 @@
+from typing import Dict, List
 from colorama import Fore, Style
 from importlib.metadata import version, PackageNotFoundError
 
@@ -49,9 +50,20 @@ def get_package_version(package_name: str) -> str:
 
 
 def print_tokens(system_prompt, user_message, max_tokens):
+    """
+    Print the number of tokens in the system prompt and user message.
+    """
     print("\n" + "="*40)
     print(f"{Fore.CYAN}System tokens: {len(system_prompt)}{Style.RESET_ALL}")
     print(f"{Fore.GREEN}User tokens: {len(user_message)}{Style.RESET_ALL}")
     print(f"{Fore.YELLOW}Max tokens: {max_tokens} | Total tokens: {
         len(user_message) + len(system_prompt)}{Style.RESET_ALL}")
     print("="*40 + "\n")
+
+
+def create_user_message(user_message: str) -> Dict[str, str]:
+    """
+    Create a user message from the given string.
+    """
+    print(f"User message: {user_message}")
+    return {"role": "user", "content": user_message}

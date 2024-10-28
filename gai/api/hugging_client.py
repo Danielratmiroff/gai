@@ -1,7 +1,6 @@
 
 import os
 from huggingface_hub import InferenceClient
-from colorama import Fore, Style
 
 from gai.src import Prompts, print_tokens
 

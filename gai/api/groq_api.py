@@ -1,4 +1,5 @@
 import os
+from typing import Dict, List
 from groq import Groq
 
 from gai.src import Prompts, print_tokens
@@ -18,21 +19,23 @@ class GroqClient:
     def get_system_prompt(self):
         return Prompts().build_commit_message_system_prompt()
 
-    def get_chat_completion(self, user_message, system_prompt):
+    def get_chat_completion(self,
+                            user_message: List[Dict[str, str]],
+                            system_prompt: str
+                            ):
 
         print_tokens(system_prompt, user_message, self.max_tokens)
 
+        # Append system prompt to user message
+        messages = [
+            {
+                "role": "assistant",
+                "content": self.get_system_prompt(),
+            },
+        ].extend(user_message)
+
         chat_completion = self.client.chat.completions.create(
-            messages=[
-                {
-                    "role": "assistant",
-                    "content": self.get_system_prompt(),
-                },
-                {
-                    "role": "user",
-                    "content": user_message,
-                }
-            ],
+            messages=messages,
             model=self.model,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
