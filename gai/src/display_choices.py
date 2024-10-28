@@ -41,20 +41,22 @@ class DisplayChoices:
 
     def render_choices_with_try_again(
         self,
-            user_msg: str,
-            ai_client: Callable[[str, str], str],
-            sys_prompt: str
+        user_msg: str,
+        ai_client: Callable[[str, str], str],
+        sys_prompt: str
     ) -> str:
         choice = OPTIONS["START"]
-        messages: List[Dict[str, str]] = [create_user_message(user_msg)]
 
-        # print(f"User message: {messages}")
+        messages: List[Dict[str, str]] = [
+            create_system_message(sys_prompt),
+            create_user_message(user_msg)
+        ]
+
         response = ai_client(
-            user_message=messages,
+            user_message=messages.copy(),
             system_prompt=sys_prompt
         )
 
-        print(f"Prompt response: {response}")
         choice = self.run(response)
 
         while choice == OPTIONS["TRY_AGAIN"]:
@@ -62,15 +64,12 @@ class DisplayChoices:
             messages.append(create_system_message(response))
             messages.append(create_user_message(try_again_prompt))
 
-            print(f"Try again prompt: {messages}")
             response = ai_client(
-                user_message=messages,
+                user_message=messages.copy(),  # Copy messages here as well
                 system_prompt=sys_prompt
             )
-            print(f"Prompt response: {response}")
 
             choice = self.run(response)
-            print(f"Selection {choice}")
 
         if choice == OPTIONS["EXIT"]:
             raise Exception("User exited")

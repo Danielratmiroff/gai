@@ -1,10 +1,12 @@
 # test_display_choices.py
 
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, call
 import ast
 
-from gai.src.display_choices import DisplayChoices
+from gai.src.display_choices import DisplayChoices, OPTIONS  # Import OPTIONS
+from gai.src.prompts import Prompts
+from gai.src.utils import create_user_message, create_system_message  # Import added
 
 # --------------------------
 # Fixtures
@@ -34,17 +36,12 @@ def mock_pick_exit():
     Fixture to mock the pick function selecting the EXIT option.
     """
     with patch('gai.src.display_choices.pick') as mock_pick:
-        mock_pick.return_value = ("> Exit", None)
+        mock_pick.return_value = (OPTIONS["EXIT"], None)
         yield mock_pick
 
 
-@pytest.fixture
-def mock_ai_client():
-    """
-    Fixture to mock the ai_client callable.
-    """
-    with patch('gai.src.display_choices.ai_client') as mock_ai:
-        yield mock_ai
+# Removed the mock_ai_client fixture as ai_client is passed directly in tests
+
 
 # --------------------------
 # Helper Functions
@@ -58,6 +55,7 @@ def mock_ai_client_response(response):
     mock = Mock()
     mock.return_value = response
     return mock
+
 
 # --------------------------
 # parse_response Method Tests
@@ -76,6 +74,7 @@ def test_parse_response_invalid(display_choices_instance):
     with pytest.raises(ValueError):
         display_choices_instance.parse_response(response)
 
+
 # --------------------------
 # display_choices Method Tests
 # --------------------------
@@ -90,12 +89,13 @@ def test_display_choices_success(display_choices_instance, mock_pick_success):
     assert selected_option == 'Option 1', "Should return the selected option"
 
     mock_pick_success.assert_called_once_with(
-        ['Option 1', 'Option 2', '> Try again', '> Exit'],
+        ['Option 1', 'Option 2', OPTIONS["TRY_AGAIN"], OPTIONS["EXIT"]],
         "Select an option:",
         indicator='*',
         multiselect=False,
         min_selection_count=1
     )
+
 
 # --------------------------
 # run Method Tests
@@ -127,13 +127,14 @@ def test_run_invalid_selection(display_choices_instance, mock_pick_success):
             mock_display.assert_called_once_with(
                 items=['Option 1', 'Option 2'])
 
+
 # --------------------------
 # render_choices_with_try_again Method Tests
 # --------------------------
 
 
 def test_render_choices_with_try_again_success(display_choices_instance, mock_pick_success):
-    sys_prompt = "You are a assistant"
+    sys_prompt = "You are an assistant"
     prompt = "user message"
     ai_response = "['Option A', 'Option B']"
     expected_choice = 'Option A'
@@ -141,43 +142,67 @@ def test_render_choices_with_try_again_success(display_choices_instance, mock_pi
     mock_ai = mock_ai_client_response(ai_response)
 
     mock_pick_success.side_effect = [
-        ('> Try again', None),  # First iteration: user chooses to try again
-        (expected_choice, 0)     # Second iteration: user selects a valid option
+        (OPTIONS["TRY_AGAIN"], None),  # First iteration: user chooses to try again
+        (expected_choice, 0)            # Second iteration: user selects a valid option
     ]
 
-    selected = display_choices_instance.render_choices_with_try_again(
-        user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt)
+    with patch.object(Prompts, 'build_try_again_prompt', return_value="Please try again.") as mock_try_again:
+        selected = display_choices_instance.render_choices_with_try_again(
+            user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt)
 
     # Then
     assert selected == expected_choice, "Should return the valid selected option after retry"
     assert mock_ai.call_count == 2
-    mock_ai.assert_any_call(
-        user_message=prompt,
-        system_prompt=sys_prompt
-    )
+
+    expected_calls = [
+        call(
+            user_message=[
+                create_system_message(sys_prompt),
+                create_user_message(prompt)
+            ],
+            system_prompt=sys_prompt
+        ),
+        call(
+            user_message=[
+                create_system_message(sys_prompt),
+                create_user_message(prompt),
+                create_system_message(ai_response),
+                create_user_message("Please try again.")
+            ],
+            system_prompt=sys_prompt
+        )
+    ]
+
+    mock_ai.assert_has_calls(expected_calls, any_order=False)
 
 
 def test_render_choices_with_try_again_exit(display_choices_instance, mock_pick_exit):
-    sys_prompt = "You are a assistant"
+    sys_prompt = "You are an assistant"
     prompt = "user message"
     ai_response = "['Option A', 'Option B']"
 
     mock_ai = mock_ai_client_response(ai_response)
 
-    with pytest.raises(Exception, match="User exited"):
-        display_choices_instance.render_choices_with_try_again(
-            user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
-        )
+    with patch.object(Prompts, 'build_try_again_prompt', return_value="Please try again."):
+        with pytest.raises(Exception, match="User exited"):
+            display_choices_instance.render_choices_with_try_again(
+                user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
+            )
 
     # Then
-    mock_ai.assert_any_call(
-        user_message=prompt,
+    expected_call = call(
+        user_message=[
+            create_system_message(sys_prompt),
+            create_user_message(prompt)
+        ],
         system_prompt=sys_prompt
     )
 
+    mock_ai.assert_has_calls([expected_call], any_order=False)
+
 
 def test_render_choices_with_try_again_no_retry(display_choices_instance, mock_pick_success):
-    sys_prompt = "You are a assistant"
+    sys_prompt = "You are an assistant"
     prompt = "user message"
     ai_response = "['Option X', 'Option Y']"
     expected_choice = 'Option Y'
@@ -186,16 +211,21 @@ def test_render_choices_with_try_again_no_retry(display_choices_instance, mock_p
 
     mock_pick_success.return_value = (expected_choice, 1)
 
-    selected = display_choices_instance.render_choices_with_try_again(
-        user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
-    )
+    with patch.object(Prompts, 'build_try_again_prompt', return_value="Please try again."):
+        selected = display_choices_instance.render_choices_with_try_again(
+            user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
+        )
 
     # Then
     assert selected == expected_choice, "Should return the selected option without retrying"
     mock_ai.assert_called_once_with(
-        user_message=prompt,
+        user_message=[
+            create_system_message(sys_prompt),
+            create_user_message(prompt)
+        ],
         system_prompt=sys_prompt
     )
+
 
 # --------------------------
 # Integration Tests
@@ -206,7 +236,7 @@ def test_full_flow_success(display_choices_instance, mock_pick_success):
     """
     Integration test for the full flow of render_choices_with_try_again method.
     """
-    sys_prompt = "You are a assistant"
+    sys_prompt = "You are an assistant"
     prompt = "Select an action:"
     ai_response = "['Action 1', 'Action 2']"
     selected_option = 'Action 1'
@@ -216,24 +246,29 @@ def test_full_flow_success(display_choices_instance, mock_pick_success):
     # User selects 'Action 1' on the first try
     mock_pick_success.return_value = (selected_option, 0)
 
-    choice = display_choices_instance.render_choices_with_try_again(
+    selected = display_choices_instance.render_choices_with_try_again(
         user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
     )
 
-    assert choice == selected_option, "Should successfully return the selected action"
+    assert selected == selected_option, "Should successfully return the selected action"
 
     # Then
-    mock_ai.assert_called_once_with(
-        user_message=prompt,
+    expected_call = call(
+        user_message=[
+            create_system_message(sys_prompt),
+            create_user_message(prompt)
+        ],
         system_prompt=sys_prompt
     )
+
+    mock_ai.assert_has_calls([expected_call], any_order=False)
 
 
 def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success):
     """
     Integration test where the user retries multiple times before making a valid selection.
     """
-    sys_prompt = "You are a assistant"
+    sys_prompt = "You are an assistant"
     prompt = "Select an action:"
     ai_response = "['Action A', 'Action B']"
     selected_option = 'Action B'
@@ -241,22 +276,54 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
     mock_ai = mock_ai_client_response(ai_response)
 
     mock_pick_success.side_effect = [
-        ("> Try again", None),  # First iteration: user chooses to try again
-        ("> Try again", None),  # Second iteration: user chooses to try again
-        (selected_option, 1)  # Third iteration: user selects a valid option
+        (OPTIONS["TRY_AGAIN"], None),  # First iteration: user chooses to try again
+        (OPTIONS["TRY_AGAIN"], None),  # Second iteration: user chooses to try again
+        (selected_option, 1)            # Third iteration: user selects a valid option
     ]
 
-    choice = display_choices_instance.render_choices_with_try_again(
-        user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
-    )
+    with patch.object(Prompts, 'build_try_again_prompt', return_value="Please try again."):
+        choice = display_choices_instance.render_choices_with_try_again(
+            user_msg=prompt, ai_client=mock_ai, sys_prompt=sys_prompt
+        )
+
     assert choice == selected_option, "Should return the selected action after multiple retries"
 
     # Then
     assert mock_ai.call_count == 3
-    mock_ai.assert_called_with(
-        user_message=prompt,
-        system_prompt=sys_prompt
-    )
+
+    # Define the exact expected messages
+    expected_calls = [
+        call(
+            user_message=[
+                create_system_message(sys_prompt),
+                create_user_message(prompt)
+            ],
+            system_prompt=sys_prompt
+        ),
+        call(
+            user_message=[
+                create_system_message(sys_prompt),
+                create_user_message(prompt),
+                create_system_message(ai_response),
+                create_user_message("Please try again.")
+            ],
+            system_prompt=sys_prompt
+        ),
+        call(
+            user_message=[
+                create_system_message(sys_prompt),
+                create_user_message(prompt),
+                create_system_message(ai_response),
+                create_user_message("Please try again."),
+                create_system_message(ai_response),
+                create_user_message("Please try again.")
+            ],
+            system_prompt=sys_prompt
+        )
+    ]
+
+    mock_ai.assert_has_calls(expected_calls, any_order=False)
+
 
 # --------------------------
 # Additional Edge Case Tests
@@ -265,7 +332,7 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
 
 def test_display_choices_empty_list(display_choices_instance, mock_pick_success):
     items = []
-    mock_pick_success.return_value = ('> Exit', None)
+    mock_pick_success.return_value = (OPTIONS["EXIT"], None)
 
     with pytest.raises(ValueError):
         display_choices_instance.run(items)
@@ -273,7 +340,7 @@ def test_display_choices_empty_list(display_choices_instance, mock_pick_success)
 
 def test_run_with_empty_response(display_choices_instance, mock_pick_success):
     items = ""
-    mock_pick_success.return_value = ('> Exit', None)
+    mock_pick_success.return_value = (OPTIONS["EXIT"], None)
 
     with patch.object(display_choices_instance, 'parse_response', side_effect=ValueError("Failed to parse")):
         with pytest.raises(ValueError, match="Failed to parse"):

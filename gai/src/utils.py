@@ -49,7 +49,10 @@ def get_package_version(package_name: str) -> str:
         return "Package not found"
 
 
-def print_tokens(system_prompt, user_message, max_tokens):
+# TODO: Fix print, it's broken
+def print_tokens(
+        system_prompt: str,
+        user_message, max_tokens):
     """
     Print the number of tokens in the system prompt and user message.
     """
