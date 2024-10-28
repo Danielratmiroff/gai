@@ -35,11 +35,14 @@ class DisplayChoices:
                          min_selection_count=1)
         return option
 
-    def render_choices_with_try_again(self, prompt: str, ai_client: callable) -> str:
+    def render_choices_with_try_again(self, user_msg: str, ai_client: callable, sys_prompt: str) -> str:
         choice = OPTIONS["START"]
 
         while choice == OPTIONS["TRY_AGAIN"] or choice == OPTIONS["START"]:
-            response = ai_client(prompt)
+            response = ai_client(
+                user_message=user_msg,
+                system_prompt=sys_prompt
+            )
             print(f"Prompt response: {response}")
 
             choice = self.run(response)

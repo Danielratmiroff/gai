@@ -133,16 +133,14 @@ class Main:
             target_branch=self.target_branch,
             source_branch=current_branch)
 
-        prompt = self.Prompt.build_merge_request_title_prompt(commits)
+        all_commits = self.Commits.format_commits(commits)
 
-        description = self.Commits.format_commits(commits)
-
-        print(prompt)
-        print(f"token count: {len(prompt.split())}")
+        system_prompt = self.Prompt.build_merge_title_system_prompt()
 
         try:
             selected_title = self.DisplayChoices.render_choices_with_try_again(
-                prompt=prompt,
+                user_msg=all_commits,
+                sys_prompt=system_prompt,
                 ai_client=self.ai_client)
         except Exception as e:
             print(f"Exiting... {e}")
@@ -150,7 +148,7 @@ class Main:
 
         print("Creating merge request with...")
         print(f"Title: {selected_title}")
-        print(f"Description: {description}")
+        print(f"Description: {all_commits}")
 
         print("Platform: ", platform)
 
@@ -158,12 +156,12 @@ class Main:
             case "gitlab":
                 self.Gitlab.create_merge_request(
                     title=selected_title,
-                    description=description)
+                    description=all_commits)
 
             case "github":
                 self.Github.create_pull_request(
                     title=selected_title,
-                    body=description)
+                    body=all_commits)
             case _:
                 raise ValueError(
                     "Platform not supported. Only github and gitlab are supported.")
@@ -174,16 +172,14 @@ class Main:
 
         git_diffs = self.Commits.get_diffs()
 
-        prompt = self.Prompt.build_commit_message_prompt(
-            git_diffs)
-
-        # print(build_prompt)
-        print(f"Token count: {len(prompt.split())}")
+        system_prompt = self.Prompt.build_commit_message_system_prompt()
 
         try:
             selected_commit = self.DisplayChoices.render_choices_with_try_again(
-                prompt=prompt,
-                ai_client=self.ai_client)
+                user_msg=git_diffs,
+                sys_prompt=system_prompt,
+                ai_client=self.ai_client
+            )
         except Exception as e:
             print(f"Exiting... {e}")
             return

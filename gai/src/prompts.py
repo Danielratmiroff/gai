@@ -2,7 +2,7 @@ COMMITS_MESSAGES = ""
 
 
 class Prompts:
-    def build_commit_message_prompt(self, content: str) -> str:
+    def build_commit_message_system_prompt(self) -> str:
         return f"""<instructions>
 
             You will be provided with git diffs from a local repository.
@@ -39,13 +39,9 @@ class Prompts:
             _MUST_ Reply the commit messages as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
             _MUST_ Do not include any additional text outside the commit messages
             </instructions>
-
-            <context>
-            {content}
-            </context>
           """
 
-    def build_merge_request_title_prompt(self, content: str) -> str:
+    def build_merge_title_system_prompt(self, content: str) -> str:
         return f"""<instructions>
 
             You will be provided with a list of git commits from a local branch.
@@ -78,8 +74,4 @@ class Prompts:
             Present the pull request titles as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
             _MUST_ Do not include any additional text outside the pull request titles.
             </instructions>
-
-            <context>
-            {content}
-            </context>
           """

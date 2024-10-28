@@ -2,6 +2,8 @@
 import os
 from huggingface_hub import InferenceClient
 
+from gai.src import Prompts
+
 
 class HuggingClient:
     def __init__(self,
@@ -16,20 +18,33 @@ class HuggingClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
+    def run(self):
+        print("Huggingface client running")
+
     def adjust_max_tokens(self, user_message) -> int:
-        print(f"max_tokens: {self.max_tokens} user_message: {len(user_message)}")
         return self.max_tokens - len(user_message)
 
-    def get_chat_completion(self, user_message):
+    def get_system_prompt(self):
+        return Prompts().build_commit_message_system_prompt()
+
+    def get_chat_completion(self, user_message, system_prompt):
         adjusted_max_tokens = self.adjust_max_tokens(user_message)
 
+        print(f"System token count: {len(self.get_system_prompt())}")
+        print(f"User token count: {len(user_message)}")
+        print(f"Max tokens: {self.max_tokens} Total tokens: {len(user_message) + len(self.get_system_prompt())}")
+
         response = self.client.chat.completions.create(
-            model=self.model,
             messages=[
-                # TODO: migrate initial prompt to system msg
-                # {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": user_message},
+                {
+                    "role": "system",
+                    "content": self.get_system_prompt()
+                },
+                {
+                    "role": "user",
+                    "content": user_message},
             ],
+            model=self.model,
             max_tokens=adjusted_max_tokens,
             temperature=self.temperature,
             stream=False,
