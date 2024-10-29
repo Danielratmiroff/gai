@@ -4,7 +4,7 @@ from typing import Dict, List
 from huggingface_hub import InferenceClient
 
 from gai.src import Prompts, print_tokens
-from gai.src.token_counter import TokenCounter
+from gai.api.token_counter import TokenCounter
 from gai.src.utils import create_system_message, get_api_huggingface_key, validate_messages
 
 

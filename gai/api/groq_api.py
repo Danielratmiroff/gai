@@ -3,7 +3,6 @@ from typing import Dict, List
 from groq import Groq
 
 from gai.src import Prompts, print_tokens
-from gai.src.token_counter import TokenCounter
 from gai.src.utils import create_system_message, validate_messages
 
 
