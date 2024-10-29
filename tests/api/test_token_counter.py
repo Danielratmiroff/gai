@@ -1,13 +1,9 @@
-# tests/test_token_counter.py
 
 import pytest
 from unittest.mock import patch, MagicMock
 from typing import List, Dict
 
 from gai.api.token_counter import TokenCounter
-
-
-# Import the TokenCounter class
 
 # --------------------------
 # Fixtures
@@ -19,7 +15,7 @@ def mock_get_api_huggingface_key_fixture():
     """
     Fixture to mock the get_api_huggingface_key function.
     """
-    with patch('gai.src.utils.get_api_huggingface_key') as mock_get_key:
+    with patch('gai.api.token_counter.get_api_huggingface_key') as mock_get_key:
         yield mock_get_key
 
 
@@ -129,7 +125,6 @@ def test_count_tokens(mock_get_api_huggingface_key_fixture, mock_auto_tokenizer_
     # Total: 8 + 8 + 3 = 19
     assert total_tokens == 19
     assert mock_tokenizer.encode.call_count == 4
-
     mock_tokenizer.encode.assert_any_call("system", add_special_tokens=False)
     mock_tokenizer.encode.assert_any_call("You are a helpful assistant.", add_special_tokens=False)
     mock_tokenizer.encode.assert_any_call("user", add_special_tokens=False)
