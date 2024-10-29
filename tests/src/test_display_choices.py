@@ -160,7 +160,6 @@ def test_render_choices_with_try_again_success(display_choices_instance, mock_pi
                 create_system_message(sys_prompt),
                 create_user_message(prompt)
             ],
-            system_prompt=sys_prompt
         ),
         call(
             user_message=[
@@ -169,7 +168,6 @@ def test_render_choices_with_try_again_success(display_choices_instance, mock_pi
                 create_system_message(ai_response),
                 create_user_message("Please try again.")
             ],
-            system_prompt=sys_prompt
         )
     ]
 
@@ -195,7 +193,6 @@ def test_render_choices_with_try_again_exit(display_choices_instance, mock_pick_
             create_system_message(sys_prompt),
             create_user_message(prompt)
         ],
-        system_prompt=sys_prompt
     )
 
     mock_ai.assert_has_calls([expected_call], any_order=False)
@@ -223,7 +220,6 @@ def test_render_choices_with_try_again_no_retry(display_choices_instance, mock_p
             create_system_message(sys_prompt),
             create_user_message(prompt)
         ],
-        system_prompt=sys_prompt
     )
 
 
@@ -258,7 +254,6 @@ def test_full_flow_success(display_choices_instance, mock_pick_success):
             create_system_message(sys_prompt),
             create_user_message(prompt)
         ],
-        system_prompt=sys_prompt
     )
 
     mock_ai.assert_has_calls([expected_call], any_order=False)
@@ -298,7 +293,6 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
                 create_system_message(sys_prompt),
                 create_user_message(prompt)
             ],
-            system_prompt=sys_prompt
         ),
         call(
             user_message=[
@@ -307,7 +301,6 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
                 create_system_message(ai_response),
                 create_user_message("Please try again.")
             ],
-            system_prompt=sys_prompt
         ),
         call(
             user_message=[
@@ -318,7 +311,6 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
                 create_system_message(ai_response),
                 create_user_message("Please try again.")
             ],
-            system_prompt=sys_prompt
         )
     ]
 
