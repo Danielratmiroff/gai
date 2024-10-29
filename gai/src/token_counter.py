@@ -5,6 +5,8 @@ import os
 from gai.src.utils import get_api_huggingface_key
 
 
+# Token counter only supports Huggingface models for now
+# TODO: Add support for GROQ models
 class TokenCounter:
     def __init__(self,
                  model: str
@@ -16,7 +18,6 @@ class TokenCounter:
         - model: The name or path of the model.
         """
         self.tokens_per_message = 3  # Every message follows {role/name, content}
-        self.tokens_per_name = 1     # If there's a name, the role is omitted
 
         # Attempt to load token from environment variable
         hf_token = get_api_huggingface_key()
@@ -34,13 +35,10 @@ class TokenCounter:
         Count tokens in a single message.
         """
         num_tokens = self.tokens_per_message
-        for key, value in message.items():
+        for _, value in message.items():
             value_str = str(value)
             tokens = self.tokenizer.encode(value_str, add_special_tokens=False)
             num_tokens += len(tokens)
-
-            if key == "name":
-                num_tokens += self.tokens_per_name
         return num_tokens
 
     def count_tokens(self, messages: List[Dict[str, str]]) -> int:
