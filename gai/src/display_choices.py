@@ -54,7 +54,6 @@ class DisplayChoices:
 
         response = ai_client(
             user_message=messages.copy(),
-            system_prompt=sys_prompt
         )
 
         choice = self.run(response)
@@ -66,7 +65,6 @@ class DisplayChoices:
 
             response = ai_client(
                 user_message=messages.copy(),  # Copy messages here as well
-                system_prompt=sys_prompt
             )
 
             choice = self.run(response)

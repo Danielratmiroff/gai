@@ -21,15 +21,10 @@ class GroqClient:
         return Prompts().build_commit_message_system_prompt()
 
     def get_chat_completion(self,
-                            user_message: List[Dict[str, str]],
-                            system_prompt: str
+                            user_message: List[Dict[str, str]]
                             ):
 
-        print_tokens(system_prompt, user_message, self.max_tokens)
-
-        # Append system prompt to user message
-        # system_prompt = create_system_message(system_prompt)
-        # messages = [system_prompt] + user_message
+        print_tokens(self.get_system_prompt(), user_message, self.max_tokens)
 
         chat_completion = self.client.chat.completions.create(
             messages=user_message,
