@@ -1,6 +1,7 @@
 import ast
 from enum import Enum
 from typing import Dict, List, Callable
+from colorama import Fore
 from pick import pick
 
 from gai.src.prompts import Prompts
@@ -83,5 +84,5 @@ class DisplayChoices:
             # title="Choose an option:"
         )
 
-        print(f"\nYou selected: {selected_item}")
+        print(f"\n{Fore.GREEN}You selected: {selected_item}")
         return selected_item
