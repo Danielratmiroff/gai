@@ -1,3 +1,4 @@
+import os
 from typing import Dict, List
 from colorama import Fore, Style
 from importlib.metadata import version, PackageNotFoundError
@@ -49,18 +50,16 @@ def get_package_version(package_name: str) -> str:
         return "Package not found"
 
 
-# TODO: Fix print, it's broken
 def print_tokens(
-        system_prompt: str,
-        user_message, max_tokens):
+    user_message: int,
+    max_tokens: int
+) -> int:
     """
     Print the number of tokens in the system prompt and user message.
     """
     print("\n" + "="*40)
-    print(f"{Fore.CYAN}System tokens: {len(system_prompt)}{Style.RESET_ALL}")
-    print(f"{Fore.GREEN}User tokens: {len(user_message)}{Style.RESET_ALL}")
-    print(f"{Fore.YELLOW}Max tokens: {max_tokens} | Total tokens: {
-        len(user_message) + len(system_prompt)}{Style.RESET_ALL}")
+    print(f"{Fore.GREEN}User tokens: {user_message}{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}Max tokens: {max_tokens}")
     print("="*40 + "\n")
 
 
@@ -76,3 +75,26 @@ def create_system_message(system_message: str) -> Dict[str, str]:
     Create a system message from the given string.
     """
     return {"role": "system", "content": system_message}
+
+
+def validate_messages(messages: List[Dict[str, str]]) -> bool:
+    """Validate message format."""
+    try:
+        for message in messages:
+            if not isinstance(message, dict):
+                raise ValueError("Each message must be a dictionary")
+            if "role" not in message and "name" not in message:
+                raise ValueError("Each message must have either 'role' or 'name'")
+            if "content" not in message:
+                raise ValueError("Each message must have 'content'")
+        return True
+    except Exception as e:
+        raise ValueError(f"Message validation failed: {str(e)}")
+
+
+def get_api_huggingface_key() -> str:
+    api_key = os.environ.get("HUGGING_FACE_TOKEN")
+    if api_key is None:
+        raise ValueError(
+            "HUGGING_FACE_TOKEN is not set, please set it in your environment variables")
+    return api_key
