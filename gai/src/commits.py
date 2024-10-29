@@ -1,6 +1,8 @@
 import os
 import subprocess
 
+from colorama import Fore, Style
+
 
 class Commits:
     def __init__(self):
@@ -30,7 +32,7 @@ class Commits:
         print("Changes committed successfully")
 
     def stage_changes(self):
-        print(f"Staging changes")
+        print(f"{Fore.GREEN}Staging all changes...{Style.RESET_ALL}")
         os.system("git add .")
 
     def format_commits(self, result: str) -> str:

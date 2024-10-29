@@ -58,9 +58,9 @@ def print_tokens(
     Print the number of tokens in the system prompt and user message.
     """
     print("\n" + "="*40)
-    print(f"{Fore.GREEN}User tokens: {user_message}{Style.RESET_ALL}")
-    print(f"{Fore.YELLOW}Max tokens: {max_tokens}")
-    print("="*40 + "\n")
+    print(f"{Fore.CYAN}User tokens: {user_message}{Style.RESET_ALL}")
+    print(f"{Fore.BLUE}Max tokens: {max_tokens}")
+    print(f"={Style.RESET_ALL}"*40 + "\n")
 
 
 def create_user_message(user_message: str) -> Dict[str, str]:
