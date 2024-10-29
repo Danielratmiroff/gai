@@ -84,5 +84,5 @@ class DisplayChoices:
             # title="Choose an option:"
         )
 
-        print(f"\n{Fore.GREEN}You selected: {selected_item}{Style.RESET_ALL}")
+        print(f"\n{Fore.MAGENTA}You selected: {selected_item}{Style.RESET_ALL}")
         return selected_item

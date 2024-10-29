@@ -187,7 +187,6 @@ class Main:
             print(f"Exiting... {e}")
             return
 
-        print("selected_commit", selected_commit)
         self.Commits.commit_changes(selected_commit)
 
 
