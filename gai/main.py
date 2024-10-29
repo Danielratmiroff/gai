@@ -42,7 +42,7 @@ class Main:
     def load_config(self):
         # AI model arguments
         self.temperature = get_attr_or_default(self.args, 'temperature', self.ConfigManager.get_config('temperature'))
-        self.max_tokens = get_attr_or_default(self.args, 'max_tokens', self.ConfigManager.get_config('max_tokens'))
+        # self.max_tokens = get_attr_or_default(self.args, 'max_tokens', self.ConfigManager.get_config('max_tokens'))
         self.target_branch = get_attr_or_default(
             self.args, 'target_branch', self.ConfigManager.get_config('target_branch'))
 
@@ -85,8 +85,8 @@ class Main:
             #    help='Override the model specified in config')
             p.add_argument('--temperature', '-t', type=float,
                            help='Override the temperature specified in config')
-            p.add_argument('--max-tokens', '-mt', type=int,
-                           help='Override the max_tokens specified in config')
+            # p.add_argument('--max-tokens', '-mt', type=int,
+            #    help='Override the max_tokens specified in config')
             p.add_argument('--target-branch', '-tb', type=str,
                            help='Specify the target branch for merge requests')
             p.add_argument('--interface', '-i', type=str,
@@ -102,7 +102,7 @@ class Main:
                 client = HuggingClient(
                     model=HUGGING_FACE_MODELS[0],
                     temperature=self.temperature,
-                    max_tokens=self.max_tokens
+                    max_tokens=32768
                 )
                 # Set as default if not already set
                 if self.ConfigManager.get_config('interface') != 'huggingface':
@@ -114,7 +114,7 @@ class Main:
                 client = GroqClient(
                     model=GROQ_MODELS[0],
                     temperature=self.temperature,
-                    max_tokens=self.max_tokens
+                    max_tokens=8000
                 )
                 # Set as default if not already set
                 if self.ConfigManager.get_config('interface') != 'groq':
@@ -187,7 +187,6 @@ class Main:
             print(f"Exiting... {e}")
             return
 
-        print("selected_commit", selected_commit)
         self.Commits.commit_changes(selected_commit)
 
 

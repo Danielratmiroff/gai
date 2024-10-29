@@ -6,7 +6,7 @@ import yaml
 DEFAULT_CONFIG = {
     'interface': 'groq',
     'model': 'llama-3.1-8b-instant',
-    'max_tokens': 8000,
+    # 'max_tokens': 32760,
     'temperature': 1,
     'target_branch': 'master',
     'assignee_id': 10437754,

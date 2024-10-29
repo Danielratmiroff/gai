@@ -3,7 +3,7 @@ from typing import Dict, List
 from groq import Groq
 
 from gai.src import Prompts, print_tokens
-from gai.src.utils import create_system_message
+from gai.src.utils import create_system_message, validate_messages
 
 
 class GroqClient:
@@ -17,6 +17,11 @@ class GroqClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
+        # TODO: we disabled token counter for now
+        # self.TokenCounter = TokenCounter(
+        #     model='meta-llama/Meta-Llama-3-8B-Instruct',
+        # )
+
     def get_system_prompt(self):
         return Prompts().build_commit_message_system_prompt()
 
@@ -24,7 +29,7 @@ class GroqClient:
                             user_message: List[Dict[str, str]]
                             ):
 
-        print_tokens(self.get_system_prompt(), user_message, self.max_tokens)
+        validate_messages(messages=user_message)
 
         chat_completion = self.client.chat.completions.create(
             messages=user_message,
