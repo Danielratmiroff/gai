@@ -4,9 +4,9 @@ import pytest
 from unittest.mock import patch, Mock, call
 import ast
 
-from gai.src.display_choices import DisplayChoices, OPTIONS  # Import OPTIONS
+from gai.src.display_choices import DisplayChoices, OPTIONS
 from gai.src.prompts import Prompts
-from gai.src.utils import create_user_message, create_system_message  # Import added
+from gai.src.utils import create_user_message, create_system_message
 
 # --------------------------
 # Fixtures
@@ -36,7 +36,7 @@ def mock_pick_exit():
     Fixture to mock the pick function selecting the EXIT option.
     """
     with patch('gai.src.display_choices.pick') as mock_pick:
-        mock_pick.return_value = (OPTIONS["EXIT"], None)
+        mock_pick.return_value = (OPTIONS.EXIT.value, None)
         yield mock_pick
 
 
@@ -89,7 +89,7 @@ def test_display_choices_success(display_choices_instance, mock_pick_success):
     assert selected_option == 'Option 1', "Should return the selected option"
 
     mock_pick_success.assert_called_once_with(
-        ['Option 1', 'Option 2', OPTIONS["TRY_AGAIN"], OPTIONS["EXIT"]],
+        ['Option 1', 'Option 2', OPTIONS.TRY_AGAIN.value, OPTIONS.EXIT.value],
         "Select an option:",
         indicator='*',
         multiselect=False,
@@ -142,7 +142,7 @@ def test_render_choices_with_try_again_success(display_choices_instance, mock_pi
     mock_ai = mock_ai_client_response(ai_response)
 
     mock_pick_success.side_effect = [
-        (OPTIONS["TRY_AGAIN"], None),  # First iteration: user chooses to try again
+        (OPTIONS.TRY_AGAIN.value, None),  # First iteration: user chooses to try again
         (expected_choice, 0)            # Second iteration: user selects a valid option
     ]
 
@@ -271,8 +271,8 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
     mock_ai = mock_ai_client_response(ai_response)
 
     mock_pick_success.side_effect = [
-        (OPTIONS["TRY_AGAIN"], None),  # First iteration: user chooses to try again
-        (OPTIONS["TRY_AGAIN"], None),  # Second iteration: user chooses to try again
+        (OPTIONS.TRY_AGAIN.value, None),  # First iteration: user chooses to try again
+        (OPTIONS.TRY_AGAIN.value, None),  # Second iteration: user chooses to try again
         (selected_option, 1)            # Third iteration: user selects a valid option
     ]
 
@@ -324,7 +324,7 @@ def test_full_flow_multiple_retries(display_choices_instance, mock_pick_success)
 
 def test_display_choices_empty_list(display_choices_instance, mock_pick_success):
     items = []
-    mock_pick_success.return_value = (OPTIONS["EXIT"], None)
+    mock_pick_success.return_value = (OPTIONS.EXIT.value, None)
 
     with pytest.raises(ValueError):
         display_choices_instance.run(items)
@@ -332,7 +332,7 @@ def test_display_choices_empty_list(display_choices_instance, mock_pick_success)
 
 def test_run_with_empty_response(display_choices_instance, mock_pick_success):
     items = ""
-    mock_pick_success.return_value = (OPTIONS["EXIT"], None)
+    mock_pick_success.return_value = (OPTIONS.EXIT.value, None)
 
     with patch.object(display_choices_instance, 'parse_response', side_effect=ValueError("Failed to parse")):
         with pytest.raises(ValueError, match="Failed to parse"):

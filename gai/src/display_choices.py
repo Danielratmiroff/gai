@@ -1,4 +1,5 @@
 import ast
+from enum import Enum
 from typing import Dict, List, Callable
 from pick import pick
 
@@ -6,11 +7,10 @@ from gai.src.prompts import Prompts
 from gai.src.utils import create_user_message, create_system_message
 
 
-OPTIONS: Dict[str, str] = {
-    "START": "start",
-    "TRY_AGAIN": "> Try again",
-    "EXIT": "> Exit"
-}
+class OPTIONS(Enum):
+    START = "start"
+    TRY_AGAIN = "> Try again"
+    EXIT = "> Exit"
 
 
 # TODO: rename this class to avoid cammel case
@@ -30,7 +30,7 @@ class DisplayChoices:
                 f"\n\nFailed to parse response into list. Error: {str(e)}") from e
 
     def display_choices(self, items: list, title="Please select an option:"):
-        items_refined = items + [OPTIONS["TRY_AGAIN"], OPTIONS["EXIT"]]
+        items_refined = items + [OPTIONS.TRY_AGAIN.value, OPTIONS.EXIT.value]
 
         option, _ = pick(items_refined,
                          title,
@@ -45,7 +45,7 @@ class DisplayChoices:
         ai_client: Callable[[str, str], str],
         sys_prompt: str
     ) -> str:
-        choice = OPTIONS["START"]
+        choice = OPTIONS.START
 
         messages: List[Dict[str, str]] = [
             create_system_message(sys_prompt),
@@ -58,7 +58,7 @@ class DisplayChoices:
 
         choice = self.run(response)
 
-        while choice == OPTIONS["TRY_AGAIN"]:
+        while choice == OPTIONS.TRY_AGAIN.value:
             try_again_prompt = Prompts().build_try_again_prompt()
             messages.append(create_system_message(response))
             messages.append(create_user_message(try_again_prompt))
@@ -69,7 +69,7 @@ class DisplayChoices:
 
             choice = self.run(response)
 
-        if choice == OPTIONS["EXIT"]:
+        if choice == OPTIONS.EXIT.value:
             raise Exception("User exited")
 
         return choice
