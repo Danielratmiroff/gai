@@ -72,7 +72,11 @@ class Github_api():
                     pr_number = existing_pr['number']
                     existing_pr_url = f"{api_url}/{pr_number}"
                     print(f"A pull request already exists: {existing_pr['html_url']}")
-                    self.update_pull_request(existing_pr_url, body)
+                    self.update_pull_request(
+                        api_url=existing_pr_url,
+                        title=title,
+                        body=body
+                    )
                 else:
                     print("Could not find the existing pull request")
             else:
@@ -103,13 +107,14 @@ class Github_api():
             return prs[0] if prs else None
         return None
 
-    def update_pull_request(self, api_url: str, body: str) -> None:
+    def update_pull_request(self, api_url: str, body: str, title: str) -> None:
         """
         Update an existing pull request.
         """
         api_key = self.get_api_key()
 
         data = {
+            "title": title,
             "body": body
         }
 

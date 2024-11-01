@@ -65,7 +65,7 @@ class DisplayChoices:
             messages.append(create_user_message(try_again_prompt))
 
             response = ai_client(
-                user_message=messages.copy(),  # Copy messages here as well
+                user_message=messages.copy(),
             )
 
             choice = self.run(response)
