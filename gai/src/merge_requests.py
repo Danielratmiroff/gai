@@ -77,6 +77,7 @@ class Merge_requests:
             "github.com/user/repo.git"
 
         """
+        print(f"remote name: {self.remote_name}")
         try:
             result = subprocess.run(
                 ["git", "remote", "get-url", self.remote_name],

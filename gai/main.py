@@ -11,6 +11,12 @@ from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigMana
 class Main:
     def run(self):
         self.args = self.parse_arguments()
+        self.remote_repo = get_attr_or_default(self.args, 'remote', 'origin')
+
+        # Initialize singleton
+        Merge_requests.initialize(remote_name=self.remote_repo)
+        self.ConfigManager = ConfigManager(get_app_name())
+        self.load_config()
 
         self.Commits = Commits()
         self.Prompt = Prompts()
@@ -19,9 +25,6 @@ class Main:
         self.Gitlab = Gitlab_api()
         self.Github = Github_api()
 
-        self.ConfigManager = ConfigManager(get_app_name())
-
-        self.load_config()
         self.ai_client = self.init_ai_client()
 
         # Version
@@ -50,7 +53,7 @@ class Main:
         self.interface = get_attr_or_default(self.args, 'interface', self.ConfigManager.get_config('interface'))
 
         # Other arguments
-        self.remote_repo = get_attr_or_default(self.args, 'remote', 'origin')
+        print(f"Using remote: {self.remote_repo}")
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
@@ -125,8 +128,6 @@ class Main:
         return client.get_chat_completion
 
     def do_merge_request(self):
-        # Initialize singleton
-        Merge_requests.initialize(remote_name=self.remote_repo)
 
         mr = Merge_requests().get_instance()
 

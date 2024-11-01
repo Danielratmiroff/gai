@@ -88,6 +88,7 @@ class Gitlab_api():
         source_branch = self.get_current_branch()
 
         existing_mr = self.get_existing_merge_request(project, source_branch)
+        print(f"Existing MR: {existing_mr}")
 
         if existing_mr:
             print(f"A merge request already exists: {existing_mr['web_url']}")
@@ -97,6 +98,7 @@ class Gitlab_api():
                 title=title,
                 description=description
             )
+
         else:
             data = {
                 "source_branch": source_branch,
@@ -105,6 +107,12 @@ class Gitlab_api():
                 "description": description,
                 "assignee_id": self.assignee_id
             }
+
+            print(f"url = https://{gitlab_url}/api/v4/projects/{project}/merge_requests")
+            print(f"Creating merge request for {source_branch} -> {self.target_branch}")
+            print(f"Project: {project}")
+            # print(f"Data: {data}")
+            print(f"API Key: {api_key}")
 
             response = requests.post(
                 f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
