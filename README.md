@@ -6,7 +6,7 @@
 
 command-line application that automates git commit messages and merge requests using AI. 
 
-![Demo](resources/video_demo.gif)
+![Demo](resources/commit_video.webm)
 
 ## ✨ Features
 
@@ -156,6 +156,7 @@ Build gai-tool from source:
 ## 🤝 Contributing
 
 Contributions are welcome! 
+
 
 ## 📄 License
 
