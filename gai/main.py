@@ -156,9 +156,10 @@ class Main:
         if ticket_id:
             selected_title = f"{ticket_id} - {selected_title}"
 
-        print("Creating merge request with...")
+        print("Creating pull request with...")
+        print(f"From {current_branch} to {self.target_branch}")
         print(f"Title: {selected_title}")
-        print(f"Description: {all_commits}")
+        # print(f"{all_commits}")
 
         match platform:
             case "gitlab":
