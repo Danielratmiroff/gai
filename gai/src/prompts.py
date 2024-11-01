@@ -20,7 +20,6 @@ class Prompts:
 
     def build_commit_message_system_prompt(self) -> str:
         return """<instructions>
-
             You will be provided with git diffs from a local repository.
             Your task is to analyze these diffs thoroughly—including all changes,
             file names, and relevant context—to generate up to three concise and
