@@ -139,7 +139,7 @@ def test_construct_project_url(gitlab_api, mock_merge_requests):
         assert project_url == 'owner%2Frepo'
 
 
-def test_create_merge_request_success(gitlab_api, mock_merge_requests):
+def test_create_merge_request_success(mock_merge_requests):
     """
     Test the create_merge_request method for a successful merge request creation.
     """
@@ -183,7 +183,7 @@ def test_create_merge_request_success(gitlab_api, mock_merge_requests):
                             "Merge request created successfully:", 201)
 
 
-def test_create_merge_request_failure(gitlab_api, mock_merge_requests):
+def test_create_merge_request_failure(mock_merge_requests):
     """
     Test the create_merge_request method when merge request creation fails.
     """
