@@ -98,11 +98,12 @@ class Main:
         match self.interface:
             case "huggingface":
                 print("Using Huggingface as ai interface")
+                model = HUGGING_FACE_MODELS[0]
 
                 client = HuggingClient(
-                    model=HUGGING_FACE_MODELS[0],
+                    model=model.model_name,
                     temperature=self.temperature,
-                    max_tokens=32000
+                    max_tokens=model.max_tokens
                 )
                 # Set as default if not already set
                 if self.ConfigManager.get_config('interface') != 'huggingface':
@@ -110,11 +111,12 @@ class Main:
 
             case _:
                 print("Using Groq as ai interface")
+                model = GROQ_MODELS[0]
 
                 client = GroqClient(
-                    model=GROQ_MODELS[0],
+                    model=model.model_name,
                     temperature=self.temperature,
-                    max_tokens=8000
+                    max_tokens=model.max_tokens
                 )
                 # Set as default if not already set
                 if self.ConfigManager.get_config('interface') != 'groq':

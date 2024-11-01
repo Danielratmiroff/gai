@@ -1,7 +1,16 @@
 import tomllib
+from typing import List
 from appdirs import user_config_dir
 from pathlib import Path
 import yaml
+from dataclasses import dataclass
+
+
+@dataclass
+class Models:
+    model_name: str
+    max_tokens: int
+
 
 DEFAULT_CONFIG = {
     'interface': 'groq',
@@ -11,17 +20,26 @@ DEFAULT_CONFIG = {
     'assignee_id': 10437754,
 }
 
-GROQ_MODELS = [
-    "llama-3.2-90b-text-preview",
-    # 'llama-3.1-8b-instant',
+GROQ_MODELS: List[Models] = [
+    Models(
+        model_name="llama-3.2-90b-instruct",
+        max_tokens=8000
+    )
+    # Models(
+    #     model_name="llama-3.1-8b-instruct",
+    #     max_tokens=8000
+    # )
 ]
 
-HUGGING_FACE_MODELS = [
-    # 'Qwen/Qwen2.5-1.5B-Instruct'
-    # "Qwen/Qwen2.5-1.5B-Instruct",
-    "Qwen/Qwen2.5-72B-Instruct"
-    # 'microsoft/Phi-3.5-mini-instruct'
-    # 'meta-llama/Meta-Llama-3-8B-Instruct',
+
+HUGGING_FACE_MODELS: List[Models] = [
+    Models(
+        model_name="Qwen/Qwen2.5-72B-Instruct",
+        max_tokens=32760
+    ),
+    # HuggingFaceModel(model_name='Qwen/Qwen2.5-1.5B-Instruct', max_tokens=32760),
+    # HuggingFaceModel(model_name='microsoft/Phi-3.5-mini-instruct', max_tokens=32760),
+    # HuggingFaceModel(model_name='meta-llama/Meta-Llama-3-8B-Instruct', max_tokens=32760),
 ]
 
 
