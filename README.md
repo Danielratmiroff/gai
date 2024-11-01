@@ -157,7 +157,6 @@ Build gai-tool from source:
 
 Contributions are welcome! 
 
-
 ## 📄 License
 
 MIT License - [LICENSE](LICENSE).
