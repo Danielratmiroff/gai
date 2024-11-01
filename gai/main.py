@@ -27,12 +27,12 @@ class Main:
         self.Gitlab = Gitlab_api()
         self.Github = Github_api()
 
-        self.ai_client = self.init_ai_client()
-
         # Version
         if attr_is_defined(self.args, 'version') and self.args.version is True:
             print(f"v{get_package_version(get_app_name())}")
             return
+
+        self.ai_client = self.init_ai_client()
 
         # Main commands
         if self.args.command == 'merge':
