@@ -40,7 +40,7 @@ class Github_api():
         source_branch = self.get_current_branch()
         api_key = self.get_api_key()
 
-        existing_pr = self.get_existing_pr_info(api_url=api_url)
+        existing_pr = self.get_existing_pr(api_url=api_url)
 
         if existing_pr:
             pr_number = existing_pr['number']
@@ -77,7 +77,7 @@ class Github_api():
                 error_message = response.json()
                 print(f"Error message: {error_message}")
 
-    def get_existing_pr_info(self, api_url: str) -> dict:
+    def get_existing_pr(self, api_url: str) -> dict:
         """
         Get existing pull request for the current branch.
         """

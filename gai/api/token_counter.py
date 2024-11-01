@@ -1,3 +1,16 @@
+import logging
+import warnings
+import os
+
+# Disable all warnings
+warnings.filterwarnings('ignore')
+
+# Disable specific transformers warnings
+os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = 'true'
+
+# Set logging level to ERROR
+logging.getLogger("transformers").setLevel(logging.ERROR)
+
 from typing import List, Dict, Optional
 from transformers import AutoTokenizer
 import os

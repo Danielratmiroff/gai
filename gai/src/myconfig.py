@@ -13,7 +13,7 @@ class Models:
 
 
 DEFAULT_CONFIG = {
-    'interface': 'groq',
+    'interface': 'huggingface',
     # 'max_tokens': 32760,
     'temperature': 1,
     'target_branch': 'master',
