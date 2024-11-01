@@ -213,7 +213,19 @@ def test_create_pull_request_success(mock_requests_post, mock_merge_requests, mo
             github_api.create_pull_request("Title", "Body")
 
     # Assert
-    assert_create_pull_request_called(mock_requests_post, "Title", "feature-branch", "main", "Body")
+    mock_requests_post.assert_called_once_with(
+        "https://api.github.com/repos/owner/repo/pulls",
+        headers={
+            "Authorization": "token fake_token",
+            "Accept": "application/vnd.github.v3+json"
+        },
+        json={
+            "title": "Title",
+            "head": "feature-branch",
+            "base": "main",
+            "body": "Body"
+        }
+    )
     mock_print.assert_any_call("Pull request created successfully.")
     mock_print.assert_any_call("Pull request URL: https://github.com/owner/repo/pull/1")
 
