@@ -195,7 +195,7 @@ def test_construct_project_url(gitlab_api, mock_subprocess_run_success):
     assert project_url == 'owner%2Frepo'
 
 
-def test_create_merge_request(mock_requests_get, mock_requests_post, mock_merge_requests, mock_subprocess_run_success):
+def test_create_merge_request_existing_mr_not_found(mock_requests_get, mock_requests_post, mock_merge_requests, mock_subprocess_run_success):
     """
     Test that create_merge_request handles existing merge requests appropriately.
     """
@@ -211,7 +211,7 @@ def test_create_merge_request(mock_requests_get, mock_requests_post, mock_merge_
     # Response indicating no existing PR
     gitlab_api.get_existing_merge_request = MagicMock(return_value=None)
 
-    # Response indicating successful update
+    # Response indicating successful create
     mock_response_post = Mock()
     mock_response_post.status_code = 201
     mock_response_post.json.return_value = {

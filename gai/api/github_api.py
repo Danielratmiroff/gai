@@ -40,48 +40,42 @@ class Github_api():
         source_branch = self.get_current_branch()
         api_key = self.get_api_key()
 
-        data = {
-            "title": title,
-            "head": source_branch,
-            "base": self.target_branch,
-            "body": body
-        }
+        existing_pr = self.get_existing_pr_info(api_url=api_url)
 
-        response = requests.post(
-            api_url,
-            headers={
-                "Authorization": f"token {api_key}",
-                "Accept": "application/vnd.github.v3+json"
-            },
-            json=data
-        )
-
-        if response.status_code == 201:
-            print("Pull request created successfully.")
-            pr_info = response.json()
-            print(f"Pull request URL: {pr_info['html_url']}")
-
+        if existing_pr:
+            pr_number = existing_pr['number']
+            existing_pr_url = f"{api_url}/{pr_number}"
+            print(f"A pull request already exists: {existing_pr['html_url']}")
+            self.update_pull_request(
+                api_url=existing_pr_url,
+                title=title,
+                body=body
+            )
         else:
-            error = response.json()
-            pr_error_msg = error.get('errors', [{}])[0].get('message', '')
+            data = {
+                "title": title,
+                "head": source_branch,
+                "base": self.target_branch,
+                "body": body
+            }
 
-            if response.status_code == 422 and 'A pull request already exists' in pr_error_msg:
-                existing_pr = self.get_existing_pr_info(api_url=api_url)
+            response = requests.post(
+                api_url,
+                headers={
+                    "Authorization": f"token {api_key}",
+                    "Accept": "application/vnd.github.v3+json"
+                },
+                json=data
+            )
 
-                if existing_pr:
-                    pr_number = existing_pr['number']
-                    existing_pr_url = f"{api_url}/{pr_number}"
-                    print(f"A pull request already exists: {existing_pr['html_url']}")
-                    self.update_pull_request(
-                        api_url=existing_pr_url,
-                        title=title,
-                        body=body
-                    )
-                else:
-                    print("Could not find the existing pull request")
+            if response.status_code == 201:
+                print("Pull request created successfully.")
+                pr_info = response.json()
+                print(f"Pull request URL: {pr_info['html_url']}")
             else:
                 print(f"Failed to create pull request: {response.status_code}")
-                print(f"Error message: {error}")
+                error_message = response.json()
+                print(f"Error message: {error_message}")
 
     def get_existing_pr_info(self, api_url: str) -> dict:
         """
