@@ -1,16 +1,24 @@
-import argparse
-from dataclasses import dataclass
-import subprocess
-import yaml
-import os
-
-from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient
 from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG
+from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient
+import os
+import yaml
+import subprocess
+from dataclasses import dataclass
+import argparse
+import logging
+# Suppress transformers logging as we don't need it
+logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 class Main:
     def run(self):
         self.args = self.parse_arguments()
+        self.remote_repo = get_attr_or_default(self.args, 'remote', 'origin')
+
+        # Initialize singleton
+        Merge_requests.initialize(remote_name=self.remote_repo)
+        self.ConfigManager = ConfigManager(get_app_name())
+        self.load_config()
 
         self.Commits = Commits()
         self.Prompt = Prompts()
@@ -19,9 +27,6 @@ class Main:
         self.Gitlab = Gitlab_api()
         self.Github = Github_api()
 
-        self.ConfigManager = ConfigManager(get_app_name())
-
-        self.load_config()
         self.ai_client = self.init_ai_client()
 
         # Version
@@ -49,9 +54,6 @@ class Main:
         # API interface
         self.interface = get_attr_or_default(self.args, 'interface', self.ConfigManager.get_config('interface'))
 
-        # Other arguments
-        self.remote_repo = get_attr_or_default(self.args, 'remote', 'origin')
-
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
 
@@ -71,7 +73,10 @@ class Main:
                                   help='Specify the remote git url (e.g., origin, upstream)')
 
         merge_parser.add_argument('--push', '-p', action='store_true',
-                                  help='Push changes to remote after creating merge request')
+                                  help='Push changes to remote before creating a merge request')
+
+        merge_parser.add_argument('--target-branch', '-tb', type=str,
+                                  help='Specify the target branch for merge requests')
         # Commit
         commit_parser = subparsers.add_parser('commit', help='Execute an automated commit')
 
@@ -87,8 +92,8 @@ class Main:
                            help='Override the temperature specified in config')
             # p.add_argument('--max-tokens', '-mt', type=int,
             #    help='Override the max_tokens specified in config')
-            p.add_argument('--target-branch', '-tb', type=str,
-                           help='Specify the target branch for merge requests')
+            # p.add_argument('--target-branch', '-tb', type=str,
+            #                help='Specify the target branch for merge requests')
             p.add_argument('--interface', '-i', type=str,
                            help='Specify the client api to use (e.g., groq, huggingface)')
 
@@ -125,8 +130,6 @@ class Main:
         return client.get_chat_completion
 
     def do_merge_request(self):
-        # Initialize singleton
-        Merge_requests.initialize(remote_name=self.remote_repo)
 
         mr = Merge_requests().get_instance()
 
@@ -156,11 +159,10 @@ class Main:
         if ticket_id:
             selected_title = f"{ticket_id} - {selected_title}"
 
-        print("Creating merge request with...")
+        print("Creating pull request...")
+        print(f"From {current_branch} to {self.target_branch}")
         print(f"Title: {selected_title}")
-        print(f"Description: {all_commits}")
-
-        print("Platform: ", platform)
+        # print(f"{all_commits}")
 
         match platform:
             case "gitlab":
