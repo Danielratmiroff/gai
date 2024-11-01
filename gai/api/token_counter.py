@@ -1,8 +1,11 @@
+import logging
 from typing import List, Dict, Optional
 from transformers import AutoTokenizer
 import os
 
 from gai.src.utils import get_api_huggingface_key
+
+logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 # Token counter only supports Huggingface models for now

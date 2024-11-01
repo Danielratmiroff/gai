@@ -102,7 +102,7 @@ class Main:
                 client = HuggingClient(
                     model=HUGGING_FACE_MODELS[0],
                     temperature=self.temperature,
-                    max_tokens=32768
+                    max_tokens=32000
                 )
                 # Set as default if not already set
                 if self.ConfigManager.get_config('interface') != 'huggingface':
