@@ -33,6 +33,8 @@ def mock_config_manager():
     with patch('gai.api.github_api.ConfigManager') as mock_cm_class:
         mock_cm_instance = Mock()
         mock_cm_class.return_value = mock_cm_instance
+
+        mock_cm_instance.get_config.return_value = "main"
         yield mock_cm_instance
 
 
@@ -114,14 +116,12 @@ def test_github_api_initialization(mock_merge_requests, mock_config_manager, moc
     """
     Test the initialization of Github_api class.
     """
-    # Arrange
-    mock_config_manager.get_config.return_value = "main"
-
     # Act
     github_api = Github_api()
 
     # Assert
     mock_config_manager.get_config.assert_called_once_with('target_branch')
+
     assert github_api.repo_owner == "owner"
     assert github_api.repo_name == "repo"
     assert github_api.target_branch == "main"
@@ -136,16 +136,12 @@ def test_load_config_success(mock_merge_requests, mock_config_manager, mock_get_
     Test that load_config successfully loads configuration.
     """
     # Arrange
-    mock_merge_requests.get_repo_owner_from_remote_url.return_value = "owner"
-    mock_merge_requests.get_repo_from_remote_url.return_value = "repo"
     mock_config_manager.get_config.return_value = "develop"
 
     # Act
     github_api = Github_api()
 
     # Assert
-    assert github_api.repo_owner == "owner"
-    assert github_api.repo_name == "repo"
     assert github_api.target_branch == "develop"
 
 # --------------------------
@@ -164,10 +160,6 @@ def test_get_current_branch_success(mock_subprocess_run_success, mock_merge_requ
     """
     # Arrange
     mock_subprocess_run_success.return_value = mock_subprocess_run_output("feature-branch\n")
-
-    mock_merge_requests.get_repo_owner_from_remote_url.return_value = "owner"
-    mock_merge_requests.get_repo_from_remote_url.return_value = "repo"
-    mock_config_manager.get_config.return_value = "develop"
 
     github_api = Github_api()
 
@@ -188,12 +180,6 @@ def test_get_current_branch_failure(mock_subprocess_run_failure, mock_merge_requ
     """
     Test that get_current_branch propagates the CalledProcessError when subprocess fails.
     """
-    # Arrange
-
-    mock_merge_requests.get_repo_owner_from_remote_url.return_value = "owner"
-    mock_merge_requests.get_repo_from_remote_url.return_value = "repo"
-    mock_config_manager.get_config.return_value = "develop"
-
     github_api = Github_api()
 
     # Act & Assert
@@ -211,11 +197,12 @@ def test_create_pull_request_success(mock_requests_post, mock_merge_requests, mo
     """
     # Arrange
     github_api = Github_api()
+
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
     github_api.target_branch = "main"
+    github_api.get_current_branch = Mock(return_value="feature-branch")
 
-    mock_subprocess_run_success.return_value = mock_subprocess_run_output("feature-branch\n")
     with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
         mock_response = Mock()
         mock_response.status_code = 201
@@ -250,11 +237,12 @@ def test_create_pull_request_existing_pr(mock_requests_post, mock_merge_requests
     """
     # Arrange
     github_api = Github_api()
+
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
     github_api.target_branch = "main"
+    github_api.get_current_branch = Mock(return_value="feature-branch")
 
-    mock_subprocess_run_success.return_value = mock_subprocess_run_output("feature-branch\n")
     with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
         # Simulate 422 response indicating existing PR
         mock_response_post = Mock()
@@ -316,8 +304,7 @@ def test_create_pull_request_existing_pr_not_found(mock_requests_post, mock_merg
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
     github_api.target_branch = "main"
-
-    mock_subprocess_run_success.return_value = mock_subprocess_run_output("feature-branch\n")
+    github_api.get_current_branch = Mock(return_value="feature-branch")
 
     with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
         # Simulate 422 response indicating existing PR
@@ -349,11 +336,6 @@ def test_create_pull_request_failure(mock_requests_post, mock_subprocess_run_suc
     Test that create_pull_request handles general failures.
     """
 
-    mock_merge_requests.get_repo_owner_from_remote_url.return_value = "owner"
-    mock_merge_requests.get_repo_from_remote_url.return_value = "repo"
-    mock_config_manager.get_config.return_value = "main"
-
-    # Arrange
     github_api = Github_api()
 
     mock_subprocess_run_success.return_value = mock_subprocess_run_output("feature-branch\n")
@@ -529,14 +511,10 @@ def test_create_pull_request_without_api_key(mock_requests_post, mock_subprocess
     """
     Test that create_pull_request raises ValueError when GITHUB_TOKEN is not set.
     """
-
-    mock_merge_requests.get_repo_owner_from_remote_url.return_value = "owner"
-    mock_merge_requests.get_repo_from_remote_url.return_value = "repo"
-    mock_config_manager.get_config.return_value = "main"
     # Arrange
     github_api = Github_api()
 
-    mock_subprocess_run_success.return_value = mock_subprocess_run_output("feature-branch\n")
+    github_api.get_current_branch = Mock(return_value="feature-branch")
 
     with patch.dict(os.environ, {}, clear=True):
         # Act & Assert
