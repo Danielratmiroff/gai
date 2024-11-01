@@ -60,6 +60,28 @@ class Github_api():
             pr_info = response.json()
             print(f"Pull request URL: {pr_info['html_url']}")
         else:
-            print(f"Failed to create pull request: {response.status_code}")
+            error_message = response.json()
+            if response.status_code == 422 and 'A pull request already exists' in error_message.get('message', ''):
+                existing_pr_url = error_message['errors'][0]['message'].split()[-1]
+                print(f"A pull request already exists: {existing_pr_url}")
+                self.update_pull_request(existing_pr_url, body)
+            else:
+                print(f"Failed to create pull request: {response.status_code}")
+                print(f"Error message: {error_message}")
+    def update_pull_request(self, pr_url: str, body: str) -> None:
+        api_key = self.get_api_key()
+        response = requests.patch(
+            pr_url,
+            headers={
+                "Authorization": f"token {api_key}",
+                "Accept": "application/vnd.github.v3+json"
+            },
+            json={"body": body}
+        )
+
+        if response.status_code == 200:
+            print("Pull request updated successfully.")
+        else:
+            print(f"Failed to update pull request: {response.status_code}")
             error_message = response.json()
             print(f"Error message: {error_message}")
