@@ -1,17 +1,17 @@
-# Gai is an AI-Powered Automation Tool for Git 🚀
-
 ![codecov](https://codecov.io/gh/Danielratmiroff/gai/branch/master/graph/badge.svg)
 [![PyPI version](https://badge.fury.io/py/gai-tool.svg)](https://badge.fury.io/py/gai-tool)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+# Gai is an AI-Powered Automation Tool for Git 🚀
 
 command-line application that automates git commit messages and merge requests using AI. 
 
 ## ✨ Features
 
-- **Automated Commit Messages**: Generate commit messages based on code diffs.
-- **Automated Merge Requests**: Create merge requests with AI-generated titles and descriptions.
-- **Multi-Platform Support**: Works with both GitHub and GitLab.
-- **Configurable AI Interfaces**: Supports Groq and Hugging Face AI interfaces.
+-  Generate commit messages based on code diffs.
+-  Create merge requests with AI-generated titles and descriptions.
+-  Works with both GitHub and GitLab.
+-  Supports Groq and Hugging Face AI interfaces.
 
 ## 📦 Installation
 
@@ -31,13 +31,18 @@ pip install gai-tool
 
 2. **Set API Tokens as Environment Variables**:
 
-   Ensure you have your AI interface and GitHub/GitLab API tokens set:
-
    ```bash
+   # Ensure you have your AI interface and GitHub/GitLab API tokens set:
    export GROQ_API_KEY='your_groq_api_key'             # If you want to use Groq's API
    export HUGGINGFACE_API_TOKEN='your_hf_api_token'    # If you want to use Hugging Face's API
    export GITHUB_TOKEN='your_github_token'             # If using GitHub
    export GITLAB_TOKEN='your_gitlab_token'             # If using GitLab
+   ```
+3. **Start Using gai-tool**:
+
+   ```bash
+   # Generate an AI-powered commit message:
+   gai commit -a
    ```
 
 ## ⚙️ Configuration
@@ -47,9 +52,9 @@ Configuration file is located at `~/.config/gai/config.yaml`. Customize settings
 Example configuration:
 
 ```yaml
-interface: groq
+interface: huggingface
 temperature: 0.7
-target_branch: main
+target_branch: master
 ```
 
 ## 📖 Usage
@@ -74,18 +79,9 @@ Options:
 ```bash
 # Simply
 gai commit -a
-```
-
-```bash
 # Or
 gai commit -a -t 0.5 -i huggingface
 ```
-
-This will:
-
-1. Stage all changes.
-2. Generate a commit message based on the diffs using the Hugging Face interface with a temperature of 0.5.
-3. Commit the changes.
 
 ### 🔀 Merge Requests
 
@@ -107,18 +103,9 @@ Options:
 ```bash
 # Simply
 gai merge -p
-```
-
-```bash
 # Or
 gai merge origin -p -tb develop -t 0.8 -i groq
 ```
-
-This will:
-
-1. Push your current branch to the remote repository.
-2. Generate a merge request title and description based on your commits.
-3. Create a merge request from your current branch to the `develop` branch.
 
 ## 🛠 Build Instructions
 
@@ -166,7 +153,7 @@ Build gai-tool from source:
 
 ## 🤝 Contributing
 
-Contributions are welcome! If you have ideas for improvements or have found bugs, please open an issue or submit a pull request.
+Contributions are welcome! 
 
 
 ## 📄 License
