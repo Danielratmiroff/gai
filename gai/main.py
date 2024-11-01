@@ -73,7 +73,10 @@ class Main:
                                   help='Specify the remote git url (e.g., origin, upstream)')
 
         merge_parser.add_argument('--push', '-p', action='store_true',
-                                  help='Push changes to remote after creating merge request')
+                                  help='Push changes to remote before creating a merge request')
+
+        merge_parser.add_argument('--target-branch', '-tb', type=str,
+                                  help='Specify the target branch for merge requests')
         # Commit
         commit_parser = subparsers.add_parser('commit', help='Execute an automated commit')
 
@@ -89,8 +92,8 @@ class Main:
                            help='Override the temperature specified in config')
             # p.add_argument('--max-tokens', '-mt', type=int,
             #    help='Override the max_tokens specified in config')
-            p.add_argument('--target-branch', '-tb', type=str,
-                           help='Specify the target branch for merge requests')
+            # p.add_argument('--target-branch', '-tb', type=str,
+            #                help='Specify the target branch for merge requests')
             p.add_argument('--interface', '-i', type=str,
                            help='Specify the client api to use (e.g., groq, huggingface)')
 
@@ -156,7 +159,7 @@ class Main:
         if ticket_id:
             selected_title = f"{ticket_id} - {selected_title}"
 
-        print("Creating pull request with...")
+        print("Creating pull request...")
         print(f"From {current_branch} to {self.target_branch}")
         print(f"Title: {selected_title}")
         # print(f"{all_commits}")
