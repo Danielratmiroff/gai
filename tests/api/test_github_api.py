@@ -363,7 +363,7 @@ def test_get_existing_pr_info_success(mock_requests_get, mock_merge_requests, mo
     mock_requests_get.return_value = mock_response
 
     # Act
-    pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
+    pr_info = github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
 
     # Assert
     mock_requests_get.assert_called_once_with(
@@ -399,7 +399,7 @@ def test_get_existing_pr_info_no_pr(mock_requests_get, mock_merge_requests):
     mock_requests_get.return_value = mock_response
 
     # Act
-    pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
+    pr_info = github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
 
     # Assert
     assert pr_info is None
@@ -420,7 +420,7 @@ def test_get_existing_pr_info_failure(mock_requests_get, mock_merge_requests):
         mock_requests_get.return_value = mock_response
 
         # Act
-        pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
+        pr_info = github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
 
     # Assert
     assert pr_info is None
@@ -523,7 +523,7 @@ def test_get_existing_pr_info_no_api_key(mock_requests_get):
     with patch.dict(os.environ, {}, clear=True):
         # Act & Assert
         with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
-            github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
+            github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
 
 # --------------------------
 # update_pull_request Integration Tests
