@@ -132,25 +132,29 @@ class Main:
 
         platform = mr.get_remote_platform()
         current_branch = get_current_branch()
+        system_prompt = self.Prompt.build_merge_title_system_prompt()
 
+        # Get description
         commits = self.Commits.get_commits(
             remote_repo=self.remote_repo,
             target_branch=self.target_branch,
             source_branch=current_branch)
-
         all_commits = self.Commits.format_commits(commits)
 
-        system_prompt = self.Prompt.build_merge_title_system_prompt()
-
+        # Get title
         try:
             selected_title = self.DisplayChoices.render_choices_with_try_again(
                 user_msg=all_commits,
                 sys_prompt=system_prompt,
                 ai_client=self.ai_client)
         except Exception as e:
-
             print(f"Exiting... {e}")
             return
+
+        # Get ticket identifier
+        ticket_id = mr.get_ticket_identifier(current_branch, self.ai_client)
+        if ticket_id:
+            selected_title = f"{ticket_id} - {selected_title}"
 
         print("Creating merge request with...")
         print(f"Title: {selected_title}")
