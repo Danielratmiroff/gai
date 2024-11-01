@@ -197,7 +197,6 @@ def test_create_pull_request_success(mock_requests_post, mock_merge_requests, mo
     """
     # Arrange
     github_api = Github_api()
-
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
     github_api.target_branch = "main"
@@ -214,19 +213,7 @@ def test_create_pull_request_success(mock_requests_post, mock_merge_requests, mo
             github_api.create_pull_request("Title", "Body")
 
     # Assert
-    mock_requests_post.assert_called_once_with(
-        "https://api.github.com/repos/owner/repo/pulls",
-        headers={
-            "Authorization": "token fake_token",
-            "Accept": "application/vnd.github.v3+json"
-        },
-        json={
-            "title": "Title",
-            "head": "feature-branch",
-            "base": "main",
-            "body": "Body"
-        }
-    )
+    assert_create_pull_request_called(mock_requests_post, "Title", "feature-branch", "main", "Body")
     mock_print.assert_any_call("Pull request created successfully.")
     mock_print.assert_any_call("Pull request URL: https://github.com/owner/repo/pull/1")
 
@@ -237,7 +224,6 @@ def test_create_pull_request_existing_pr(mock_requests_post, mock_merge_requests
     """
     # Arrange
     github_api = Github_api()
-
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
     github_api.target_branch = "main"
@@ -289,7 +275,7 @@ def test_create_pull_request_existing_pr(mock_requests_post, mock_merge_requests
             "Authorization": "token fake_token",
             "Accept": "application/vnd.github.v3+json"
         },
-        json={"body": "Updated Body"}
+        json={"title": "Title", "body": "Updated Body"}
     )
     mock_print.assert_any_call("A pull request already exists: https://github.com/owner/repo/pull/1")
     mock_print.assert_any_call("Pull request updated successfully.")
@@ -464,7 +450,8 @@ def test_update_pull_request_success(mock_requests_patch, mock_merge_requests):
 
         # Act
         with patch('builtins.print') as mock_print:
-            github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1", "Updated Body")
+            github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1",
+                                           title="Updated Title", body="Updated Body")
 
     # Assert
     mock_requests_patch.assert_called_once_with(
@@ -473,7 +460,10 @@ def test_update_pull_request_success(mock_requests_patch, mock_merge_requests):
             "Authorization": "token fake_token",
             "Accept": "application/vnd.github.v3+json"
         },
-        json={"body": "Updated Body"}
+        json={
+            "title": "Updated Title",
+            "body": "Updated Body"
+        }
     )
     mock_print.assert_any_call("Pull request updated successfully.")
 
@@ -495,7 +485,8 @@ def test_update_pull_request_failure(mock_requests_patch, mock_merge_requests):
 
         # Act
         with patch('builtins.print') as mock_print:
-            github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1", "Body")
+            github_api.update_pull_request(
+                "https://api.github.com/repos/owner/repo/pulls/1", title="Title", body="Body")
 
     # Assert
     mock_requests_patch.assert_called_once()
@@ -553,4 +544,7 @@ def test_update_pull_request_no_api_key(mock_requests_patch):
     # Act & Assert
     with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
-            github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1", "Body")
+            github_api.update_pull_request(
+                "https://api.github.com/repos/owner/repo/pulls/1",
+                "Title",
+                "Body")
