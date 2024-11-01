@@ -6,6 +6,8 @@
 
 command-line application that automates git commit messages and merge requests using AI. 
 
+![Demo](resources/commit_video.webm)
+
 ## ✨ Features
 
 -  Generate commit messages based on code diffs.
