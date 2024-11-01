@@ -35,6 +35,51 @@ class Gitlab_api():
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         return result.stdout.strip()
 
+    def get_existing_merge_request(self, project: str, source_branch: str) -> dict:
+        """
+        Get existing merge request for the current branch.
+        """
+        gitlab_url = self.Merge_requests.get_remote_url()
+        api_key = self.get_api_key()
+
+        response = requests.get(
+            f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
+            headers={"PRIVATE-TOKEN": api_key},
+            params={
+                "source_branch": source_branch,
+                "state": "opened"
+            }
+        )
+
+        if response.status_code == 200:
+            mrs = response.json()
+            return mrs[0] if mrs else None
+        return None
+
+    def update_merge_request(self, project: str, mr_id: int, title: str, description: str) -> None:
+        """
+        Update an existing merge request.
+        """
+        gitlab_url = self.Merge_requests.get_remote_url()
+        api_key = self.get_api_key()
+
+        data = {
+            "title": title,
+            "description": description
+        }
+
+        response = requests.put(
+            f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests/{mr_id}",
+            headers={"PRIVATE-TOKEN": api_key},
+            json=data
+        )
+
+        if response.status_code == 200:
+            print("Merge request updated successfully.")
+        else:
+            print(f"Failed to update merge request: {response.status_code}")
+            print(f"Response text: {response.text}")
+
     def create_merge_request(self, title: str, description: str) -> None:
         gitlab_url = self.Merge_requests.get_remote_url()
 
@@ -42,22 +87,33 @@ class Gitlab_api():
         api_key = self.get_api_key()
         source_branch = self.get_current_branch()
 
-        data = {
-            "source_branch": source_branch,
-            "target_branch": self.target_branch,
-            "title": title,
-            "description": description,
-            "assignee_id": self.assignee_id
-        }
+        existing_mr = self.get_existing_merge_request(project, source_branch)
 
-        response = requests.post(
-            f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
-            headers={"PRIVATE-TOKEN": api_key},
-            json=data
-        )
-
-        if response.status_code == 201:
-            print("Merge request created successfully:", response.status_code)
+        if existing_mr:
+            print(f"A merge request already exists: {existing_mr['web_url']}")
+            self.update_merge_request(
+                project=project,
+                mr_id=existing_mr['iid'],
+                title=title,
+                description=description
+            )
         else:
-            print(f"Failed to create merge request: {response.status_code}")
-            print(f"Response text: {response.text}")
+            data = {
+                "source_branch": source_branch,
+                "target_branch": self.target_branch,
+                "title": title,
+                "description": description,
+                "assignee_id": self.assignee_id
+            }
+
+            response = requests.post(
+                f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
+                headers={"PRIVATE-TOKEN": api_key},
+                json=data
+            )
+
+            if response.status_code == 201:
+                print("Merge request created successfully:", response.status_code)
+            else:
+                print(f"Failed to create merge request: {response.status_code}")
+                print(f"Response text: {response.text}")
