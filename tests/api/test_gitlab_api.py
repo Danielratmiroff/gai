@@ -139,89 +139,64 @@ def test_construct_project_url(gitlab_api, mock_merge_requests):
         assert project_url == 'owner%2Frepo'
 
 
-def test_create_merge_request_success(mock_merge_requests):
+def test_create_merge_request_existing_mr(mock_merge_requests):
     """
-    Test the create_merge_request method for a successful merge request creation.
+    Test that create_merge_request handles existing merge requests appropriately.
     """
-    # Given
-    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
-        mock_result = MagicMock()
-        # Simulate the output of the command
-        mock_result.stdout = 'git@gitlab.com:owner/repo.git'
-        mock_subprocess_run.return_value = mock_result
+    # Arrange
+    gitlab_api = Gitlab_api()
+    gitlab_api.get_current_branch = MagicMock(return_value="feature-branch")
+    gitlab_api.get_api_key = MagicMock(return_value="test_gitlab_token")
 
-        with patch.object(Gitlab_api, 'get_current_branch', return_value='feature-branch'):
-            with patch.object(Gitlab_api, 'get_api_key', return_value='test_gitlab_token'):
+    with patch('gai.api.gitlab_api.requests.get') as mock_requests_get:
+        mock_response_get = MagicMock()
+        mock_response_get.status_code = 200
+        mock_response_get.json.return_value = [{
+            'iid': 1,
+            'web_url': 'https://gitlab.com/owner/repo/-/merge_requests/1'
+        }]
+        mock_requests_get.return_value = mock_response_get
 
-                # Configure the mock response for a successful merge request creation
-                with patch('gai.api.gitlab_api.requests.post') as mock_requests_post:
-                    mock_response = MagicMock()
-                    mock_response.status_code = 201
-                    mock_response.json.return_value = {
-                        'id': 1, 'url': 'https://gitlab.com/owner/repo/-/merge_requests/1'}
-                    mock_requests_post.return_value = mock_response
+        with patch('gai.api.gitlab_api.requests.put') as mock_requests_put:
+            mock_response_put = MagicMock()
+            mock_response_put.status_code = 200
+            mock_requests_put.return_value = mock_response_put
 
-                    with patch('builtins.print') as mock_print:
-                        # When
-                        gitlab_api.create_merge_request(
-                            'Test MR', 'Test description')
+            with patch('builtins.print') as mock_print:
+                # Act
+                gitlab_api.create_merge_request("Title", "Updated description")
 
-                        # Then
-                        mock_requests_post.assert_called_once_with(
-                            "https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests",
-                            headers={"PRIVATE-TOKEN": "test_gitlab_token"},
-                            json={
-                                "source_branch": "feature-branch",
-                                "target_branch": gitlab_api.target_branch,
-                                "title": "Test MR",
-                                "description": "Test description",
-                                "assignee_id": gitlab_api.assignee_id
-                            }
-                        )
-
-                        mock_print.assert_any_call(
-                            "Merge request created successfully:", 201)
+    # Assert
+    mock_requests_get.assert_called_once()
+    mock_requests_put.assert_called_once_with(
+        "https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests/1",
+        headers={"PRIVATE-TOKEN": "test_gitlab_token"},
+        json={"title": "Title", "description": "Updated description"}
+    )
+    mock_print.assert_any_call("A merge request already exists: https://gitlab.com/owner/repo/-/merge_requests/1")
+    mock_print.assert_any_call("Merge request updated successfully.")
 
 
-def test_create_merge_request_failure(mock_merge_requests):
+def test_update_merge_request_failure(mock_merge_requests):
     """
-    Test the create_merge_request method when merge request creation fails.
+    Test that update_merge_request handles failures appropriately.
     """
-    # Given
-    with patch('gai.src.merge_requests.subprocess.run') as mock_subprocess_run:
-        mock_result = MagicMock()
+    # Arrange
+    gitlab_api = Gitlab_api()
+    gitlab_api.get_api_key = MagicMock(return_value="test_gitlab_token")
 
-        mock_result.stdout = 'git@gitlab.com:owner/repo.git'
-        mock_subprocess_run.return_value = mock_result
+    with patch('gai.api.gitlab_api.requests.put') as mock_requests_put:
+        mock_response_put = MagicMock()
+        mock_response_put.status_code = 400
+        mock_response_put.json.return_value = {"message": "Bad Request"}
+        mock_requests_put.return_value = mock_response_put
 
-        with patch.object(Gitlab_api, 'get_current_branch', return_value='feature-branch') as mock_get_branch:
-            with patch.object(Gitlab_api, 'get_api_key', return_value='test_gitlab_token') as mock_get_api_key:
-                # Configure the mock response for a failed merge request creation
-                with patch('gai.api.gitlab_api.requests.post') as mock_requests_post:
-                    mock_response = MagicMock()
-                    mock_response.status_code = 400
-                    mock_response.text = '{"error": "Bad Request"}'
-                    mock_requests_post.return_value = mock_response
+        with patch('builtins.print') as mock_print:
+            # Act
+            gitlab_api.update_merge_request(
+                "owner%2Frepo", 1, "Title", "Description")
 
-                    with patch('builtins.print') as mock_print:
-                        # When
-                        gitlab_api.create_merge_request(
-                            'Test MR', 'Test description')
-
-                        # Then
-                        mock_requests_post.assert_called_once_with(
-                            "https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests",
-                            headers={"PRIVATE-TOKEN": "test_gitlab_token"},
-                            json={
-                                "source_branch": "feature-branch",
-                                "target_branch": gitlab_api.target_branch,
-                                "title": "Test MR",
-                                "description": "Test description",
-                                "assignee_id": gitlab_api.assignee_id
-                            }
-                        )
-
-                        mock_print.assert_any_call(
-                            "Failed to create merge request: 400")
-                        mock_print.assert_any_call(
-                            f"Response text: {mock_response.text}")
+    # Assert
+    mock_requests_put.assert_called_once()
+    mock_print.assert_any_call("Failed to update merge request: 400")
+    mock_print.assert_any_call("Response text: {'message': 'Bad Request'}")
