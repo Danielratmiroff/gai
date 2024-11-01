@@ -146,6 +146,7 @@ class Main:
                 sys_prompt=system_prompt,
                 ai_client=self.ai_client)
         except Exception as e:
+
             print(f"Exiting... {e}")
             return
 

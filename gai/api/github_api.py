@@ -14,6 +14,8 @@ class Github_api():
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
 
+        self.repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
+        self.repo_name = self.Merge_requests.get_repo_from_remote_url()
         self.target_branch = config_manager.get_config('target_branch')
 
     def get_api_key(self):
@@ -33,8 +35,7 @@ class Github_api():
         return result.stdout.strip()
 
     def create_pull_request(self, title: str, body: str) -> None:
-        repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
-        repo_name = self.Merge_requests.get_repo_from_remote_url()
+        api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/pulls"
 
         source_branch = self.get_current_branch()
         api_key = self.get_api_key()
@@ -47,7 +48,7 @@ class Github_api():
         }
 
         response = requests.post(
-            f"https://api.github.com/repos/{repo_owner}/{repo_name}/pulls",
+            api_url,
             headers={
                 "Authorization": f"token {api_key}",
                 "Accept": "application/vnd.github.v3+json"
@@ -59,7 +60,71 @@ class Github_api():
             print("Pull request created successfully.")
             pr_info = response.json()
             print(f"Pull request URL: {pr_info['html_url']}")
+
         else:
-            print(f"Failed to create pull request: {response.status_code}")
+            error = response.json()
+            pr_error_msg = error.get('errors', [{}])[0].get('message', '')
+
+            if response.status_code == 422 and 'A pull request already exists' in pr_error_msg:
+                existing_pr = self.get_existing_pr_info(api_url=api_url)
+
+                if existing_pr:
+                    pr_number = existing_pr['number']
+                    existing_pr_url = f"{api_url}/{pr_number}"
+                    print(f"A pull request already exists: {existing_pr['html_url']}")
+                    self.update_pull_request(existing_pr_url, body)
+                else:
+                    print("Could not find the existing pull request")
+            else:
+                print(f"Failed to create pull request: {response.status_code}")
+                print(f"Error message: {error}")
+
+    def get_existing_pr_info(self, api_url: str) -> dict:
+        """
+        Get existing pull request for the current branch.
+        """
+        api_key = self.get_api_key()
+        source_branch = self.get_current_branch()
+
+        response = requests.get(
+            api_url,
+            headers={
+                "Authorization": f"token {api_key}",
+                "Accept": "application/vnd.github.v3+json"
+            },
+            params={
+                "head": f"{self.repo_owner}:{source_branch}",
+                "state": "open"
+            }
+        )
+
+        if response.status_code == 200:
+            prs = response.json()
+            return prs[0] if prs else None
+        return None
+
+    def update_pull_request(self, api_url: str, body: str) -> None:
+        """
+        Update an existing pull request.
+        """
+        api_key = self.get_api_key()
+
+        data = {
+            "body": body
+        }
+
+        response = requests.patch(
+            api_url,
+            headers={
+                "Authorization": f"token {api_key}",
+                "Accept": "application/vnd.github.v3+json"
+            },
+            json=data
+        )
+
+        if response.status_code == 200:
+            print("Pull request updated successfully.")
+        else:
+            print(f"Failed to update pull request: {response.status_code}")
             error_message = response.json()
             print(f"Error message: {error_message}")
