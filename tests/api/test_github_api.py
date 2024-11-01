@@ -350,6 +350,7 @@ def test_create_pull_request_failure(mock_requests_post, mock_subprocess_run_suc
 
     # Assert
     mock_requests_post.assert_called_once()
+
     mock_print.assert_any_call("Failed to create pull request: 400")
     mock_print.assert_any_call("Error message: {'message': 'Bad Request'}")
 
