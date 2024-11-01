@@ -122,7 +122,7 @@ This will:
 
 ## 🛠 Build Instructions
 
-If you wish to build gai-tool from source:
+Build gai-tool from source:
 
 1. **Clone the Repository**:
 
