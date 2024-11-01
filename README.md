@@ -6,7 +6,7 @@
 
 command-line application that automates git commit messages and merge requests using AI. 
 
-![Demo](resources/video_demo.webm)
+![Demo](resources/video_demo.gif)
 
 ## ✨ Features
 
