@@ -1,11 +1,13 @@
-import argparse
-from dataclasses import dataclass
-import subprocess
-import yaml
-import os
-
-from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient
 from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG
+from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient
+import os
+import yaml
+import subprocess
+from dataclasses import dataclass
+import argparse
+import logging
+# Suppress transformers logging as we don't need it
+logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 class Main:
@@ -51,9 +53,6 @@ class Main:
 
         # API interface
         self.interface = get_attr_or_default(self.args, 'interface', self.ConfigManager.get_config('interface'))
-
-        # Other arguments
-        print(f"Using remote: {self.remote_repo}")
 
     def parse_arguments(self):
         parser = argparse.ArgumentParser(description="Git-AI (gai): Automate your git messages")
@@ -160,8 +159,6 @@ class Main:
         print("Creating merge request with...")
         print(f"Title: {selected_title}")
         print(f"Description: {all_commits}")
-
-        print("Platform: ", platform)
 
         match platform:
             case "gitlab":

@@ -197,16 +197,16 @@ def test_create_pull_request_success(mock_requests_post, mock_merge_requests, mo
     github_api.repo_name = "repo"
     github_api.target_branch = "main"
     github_api.get_current_branch = Mock(return_value="feature-branch")
+    github_api.get_api_key = MagicMock(return_value="fake_token")
 
-    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
-        mock_response = Mock()
-        mock_response.status_code = 201
-        mock_response.json.return_value = {'html_url': 'https://github.com/owner/repo/pull/1'}
-        mock_requests_post.return_value = mock_response
+    mock_response = Mock()
+    mock_response.status_code = 201
+    mock_response.json.return_value = {'html_url': 'https://github.com/owner/repo/pull/1'}
+    mock_requests_post.return_value = mock_response
 
-        # Act
-        with patch('builtins.print') as mock_print:
-            github_api.create_pull_request("Title", "Body")
+    # Act
+    with patch('builtins.print') as mock_print:
+        github_api.create_pull_request("Title", "Body")
 
     # Assert
     mock_requests_post.assert_called_once_with(
@@ -352,18 +352,18 @@ def test_get_existing_pr_info_success(mock_requests_get, mock_merge_requests, mo
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
     github_api.get_current_branch = Mock(return_value="feature-branch")
+    github_api.get_api_key = MagicMock(return_value="fake_token")
 
-    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = [{
-            'number': 1,
-            'html_url': 'https://github.com/owner/repo/pull/1',
-        }]
-        mock_requests_get.return_value = mock_response
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = [{
+        'number': 1,
+        'html_url': 'https://github.com/owner/repo/pull/1',
+    }]
+    mock_requests_get.return_value = mock_response
 
-        # Act
-        pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
+    # Act
+    pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
 
     # Assert
     mock_requests_get.assert_called_once_with(
@@ -391,15 +391,15 @@ def test_get_existing_pr_info_no_pr(mock_requests_get, mock_merge_requests):
     github_api = Github_api()
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
+    github_api.get_api_key = MagicMock(return_value="fake_token")
 
-    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_response.json.return_value = []
-        mock_requests_get.return_value = mock_response
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = []
+    mock_requests_get.return_value = mock_response
 
-        # Act
-        pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
+    # Act
+    pr_info = github_api.get_existing_pr_info("https://api.github.com/repos/owner/repo/pulls")
 
     # Assert
     assert pr_info is None
@@ -438,16 +438,16 @@ def test_update_pull_request_success(mock_requests_patch, mock_merge_requests):
     github_api = Github_api()
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
+    github_api.get_api_key = MagicMock(return_value="fake_token")
 
-    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
-        mock_response = Mock()
-        mock_response.status_code = 200
-        mock_requests_patch.return_value = mock_response
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_requests_patch.return_value = mock_response
 
-        # Act
-        with patch('builtins.print') as mock_print:
-            github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1",
-                                           title="Updated Title", body="Updated Body")
+    # Act
+    with patch('builtins.print') as mock_print:
+        github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1",
+                                       title="Updated Title", body="Updated Body")
 
     # Assert
     mock_requests_patch.assert_called_once_with(
@@ -472,17 +472,17 @@ def test_update_pull_request_failure(mock_requests_patch, mock_merge_requests):
     github_api = Github_api()
     github_api.repo_owner = "owner"
     github_api.repo_name = "repo"
+    github_api.get_api_key = MagicMock(return_value="fake_token")
 
-    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
-        mock_response = Mock()
-        mock_response.status_code = 400
-        mock_response.json.return_value = {"message": "Bad Request"}
-        mock_requests_patch.return_value = mock_response
+    mock_response = Mock()
+    mock_response.status_code = 400
+    mock_response.json.return_value = {"message": "Bad Request"}
+    mock_requests_patch.return_value = mock_response
 
-        # Act
-        with patch('builtins.print') as mock_print:
-            github_api.update_pull_request(
-                "https://api.github.com/repos/owner/repo/pulls/1", title="Title", body="Body")
+    # Act
+    with patch('builtins.print') as mock_print:
+        github_api.update_pull_request(
+            "https://api.github.com/repos/owner/repo/pulls/1", title="Title", body="Body")
 
     # Assert
     mock_requests_patch.assert_called_once()
