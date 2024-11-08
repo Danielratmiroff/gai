@@ -2,7 +2,7 @@
 [![PyPI version](https://badge.fury.io/py/gai-tool.svg)](https://badge.fury.io/py/gai-tool)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-# Gai is an AI-Powered Automation Tool for Git 🚀
+# Gai is a CLI Automation Tool for Git 🚀
 
 command-line application that automates git commit messages and merge requests using AI. 
 
