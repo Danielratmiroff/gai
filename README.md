@@ -150,7 +150,7 @@ Build gai-tool from source:
 6. **Install the Built Package**:
 
    ```bash
-   pip install dist/gai_tool-0.1.0-py3-none-any.whl
+   pip install dist/gai_tool-<VERSION>-py3-none-any.whl
    ```
 
 ## 🤝 Contributing
