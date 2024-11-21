@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gai-tool"
-version = "0.2.2"
+version = "0.2.3"
 description = "AI-powered automation tool for git"
 authors = [{ name = "Daniel Ratmiroff", email = "danielratmiroff@pm.me" }]
 readme = "README.md"
