@@ -41,6 +41,7 @@ class Gitlab_api():
         """
         gitlab_url = self.Merge_requests.get_remote_url()
         api_key = self.get_api_key()
+        print(f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests")
 
         response = requests.get(
             f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
