@@ -37,10 +37,10 @@ HUGGING_FACE_MODELS: List[Models] = [
         model_name="Qwen/Qwen2.5-72B-Instruct",
         max_tokens=32760
     ),
-    Models(
-        model_name="Qwen/QwQ-32B-Preview",
-        max_tokens=32760
-    ),
+    # Models(
+    #     model_name="Qwen/QwQ-32B-Preview",
+    #     max_tokens=16000
+    # ),
     # Models(
     #     model_name="llama-3.1-8b-instruct",
     #     max_tokens=8000
