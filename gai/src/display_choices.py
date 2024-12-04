@@ -53,6 +53,9 @@ class DisplayChoices:
             create_user_message(user_msg)
         ]
 
+        print("\n" + sys_prompt)
+        print(user_msg)
+
         response = ai_client(
             user_message=messages.copy(),
         )

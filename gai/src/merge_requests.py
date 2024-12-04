@@ -107,6 +107,7 @@ class Merge_requests:
         else:
             return "Error: Unable to determine platform from remote URL. Only github and gitlab are supported."
 
+
 ############################################################################################################
 # Helper functions
 ############################################################################################################
