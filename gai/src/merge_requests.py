@@ -102,7 +102,7 @@ class Merge_requests:
         print(f"remote url: {remote_url}")
         if "github" in remote_url:
             return "github"
-        elif "gitlab" in remote_url or "git" in remote_url:
+        elif "gitlab" in remote_url or "git." in remote_url:
             return "gitlab"
         else:
             return "Error: Unable to determine platform from remote URL. Only github and gitlab are supported."
