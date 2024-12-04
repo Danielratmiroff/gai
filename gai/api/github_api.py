@@ -43,9 +43,9 @@ class Github_api():
 
         if existing_pr:
             pr_number = existing_pr['number']
-            existing_pr_url = f"{self.api_url}/{pr_number}"
             print(f"A pull request already exists: {existing_pr['html_url']}")
             self.update_pull_request(
+                pr_number=pr_number,
                 title=title,
                 body=body
             )
@@ -99,12 +99,11 @@ class Github_api():
             return prs[0] if prs else None
         return None
 
-    def update_pull_request(self, title: str, body: str) -> None:
+    def update_pull_request(self, pr_number: int, title: str, body: str) -> None:
         """
         Update an existing pull request.
         """
         api_key = self.get_api_key()
-        api_url = self.api_url
 
         data = {
             "title": title,
@@ -112,7 +111,7 @@ class Github_api():
         }
 
         response = requests.patch(
-            api_url,
+            f"{self.api_url}/{pr_number}",
             headers={
                 "Authorization": f"token {api_key}",
                 "Accept": "application/vnd.github.v3+json"

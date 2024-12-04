@@ -57,7 +57,7 @@ class Gitlab_api():
             return mrs[0] if mrs else None
         return None
 
-    def update_merge_request(self, project: str, mr_id: int, title: str, description: str) -> None:
+    def update_merge_request(self, mr_id: int, title: str, description: str) -> None:
         """
         Update an existing merge request.
         """
@@ -89,7 +89,6 @@ class Gitlab_api():
         if existing_mr:
             print(f"A merge request already exists: {existing_mr['web_url']}")
             self.update_merge_request(
-                project=project,
                 mr_id=existing_mr['iid'],
                 title=title,
                 description=description

@@ -165,34 +165,35 @@ def test_get_current_branch_failure(mock_subprocess_run_failure, mock_merge_requ
         gitlab_api.get_current_branch()
 
 
-def test_construct_project_url_https(gitlab_api, mock_subprocess_run_success):
+def test_get_api_url_https(gitlab_api, mock_subprocess_run_success):
     """
-    Test the construct_project_url method to ensure it constructs the correct project URL
+    Test the get_api_url method to ensure it constructs the correct API URL
     when the stdout returns an HTTPS repo URL.
     """
     # Given
     mock_subprocess_run_success.return_value = mock_subprocess_run_output(
         "https://gitlab.com/owner/repo.git")
     # When
-    project_url = gitlab_api.construct_project_url()
+    api_url = gitlab_api.get_api_url()
 
     # Then
-    assert project_url == 'owner%2Frepo'
+    assert api_url == 'https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests'
 
 
-def test_construct_project_url(gitlab_api, mock_subprocess_run_success):
+def test_get_api_url_ssh(gitlab_api, mock_subprocess_run_success):
     """
-    Test the construct_project_url method to ensure it constructs the correct project URL.
+    Test the get_api_url method to ensure it constructs the correct API URL
+    when using SSH remote URL.
     """
     # Given
     mock_subprocess_run_success.return_value = mock_subprocess_run_output(
         "git@gitlab.com:owner/repo.git")
 
     # When
-    project_url = gitlab_api.construct_project_url()
+    api_url = gitlab_api.get_api_url()
 
     # Then
-    assert project_url == 'owner%2Frepo'
+    assert api_url == 'https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests'
 
 
 def test_create_merge_request_existing_mr_not_found(mock_requests_get, mock_requests_post, mock_merge_requests, mock_subprocess_run_success):
@@ -224,7 +225,7 @@ def test_create_merge_request_existing_mr_not_found(mock_requests_get, mock_requ
 
     # Assert
     mock_requests_post.assert_called_once_with(
-        "https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests",
+        gitlab_api.get_api_url(),
         headers={"PRIVATE-TOKEN": "test_gitlab_token"},
         json={
             "source_branch": "feature-branch",
@@ -272,7 +273,7 @@ def test_create_merge_request_existing_mr(mock_requests_get, mock_requests_put, 
     mock_requests_get.assert_called_once()
 
     mock_requests_put.assert_called_once_with(
-        "https://gitlab.com/api/v4/projects/owner%2Frepo/merge_requests/1",
+        f"{gitlab_api.get_api_url()}/{1}",
         headers={"PRIVATE-TOKEN": "test_gitlab_token"},
         json={"title": "Title", "description": "Updated description"}
     )
@@ -295,8 +296,7 @@ def test_update_merge_request_failure(mock_requests_get, mock_requests_put):
 
     with patch('builtins.print') as mock_print:
         # Act
-        gitlab_api.update_merge_request(
-            "owner%2Frepo", 1, "Title", "Description")
+        gitlab_api.update_merge_request(1, "Title", "Description")
 
     # Assert
     mock_requests_put.assert_called_once()
