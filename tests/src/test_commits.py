@@ -90,11 +90,9 @@ def test_get_commits_success(mock_subprocess_run_success, commit_instance):
         check=True
     )
 
-
 def test_get_commits_fetch_failure(mock_subprocess_run_failure, commit_instance):
-    commits = commit_instance.get_commits("origin", "main", "feature-branch")
-    assert commits.startswith(
-        "Error fetching commits:"), "Should return error message on fetch failure"
+    with pytest.raises(subprocess.CalledProcessError):
+        commit_instance.get_commits("origin", "main", "feature-branch")
 
 
 def test_get_commits_log_failure(mock_subprocess_run_success, commit_instance):
@@ -111,10 +109,9 @@ def test_get_commits_log_failure(mock_subprocess_run_success, commit_instance):
         )
     ]
 
-    commits = commit_instance.get_commits("origin", "main", "feature-branch")
-    expected_error = ("Error fetching commits: Command '['git', 'log', '--oneline', "
-                      "'origin/main..feature-branch']' returned non-zero exit status 1.")
-    assert commits == expected_error, "Should return specific error message on log failure"
+    with pytest.raises(subprocess.CalledProcessError) as excinfo:
+        commit_instance.get_commits("origin", "main", "feature-branch")
+    assert "Command '['git', 'log', '--oneline', 'origin/main..feature-branch']' returned non-zero exit status 1." in str(excinfo.value)
 
     # Verify fetch command was called
     mock_subprocess_run_success.assert_any_call(

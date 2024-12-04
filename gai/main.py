@@ -138,10 +138,15 @@ class Main:
         system_prompt = self.Prompt.build_merge_title_system_prompt()
 
         # Get description
-        commits = self.Commits.get_commits(
-            remote_repo=self.remote_repo,
-            target_branch=self.target_branch,
-            source_branch=current_branch)
+        try:
+            commits = self.Commits.get_commits(
+                remote_repo=self.remote_repo,
+                target_branch=self.target_branch,
+                source_branch=current_branch)
+        except Exception as e:
+            print(f"Error fetching commits: {e}")
+            return
+
         all_commits = self.Commits.format_commits(commits)
 
         # Get title

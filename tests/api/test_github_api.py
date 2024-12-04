@@ -363,7 +363,7 @@ def test_get_existing_pr_info_success(mock_requests_get, mock_merge_requests, mo
     mock_requests_get.return_value = mock_response
 
     # Act
-    pr_info = github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
+    pr_info = github_api.get_existing_pr()
 
     # Assert
     mock_requests_get.assert_called_once_with(
@@ -399,7 +399,7 @@ def test_get_existing_pr_info_no_pr(mock_requests_get, mock_merge_requests):
     mock_requests_get.return_value = mock_response
 
     # Act
-    pr_info = github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
+    pr_info = github_api.get_existing_pr()
 
     # Assert
     assert pr_info is None
@@ -420,7 +420,7 @@ def test_get_existing_pr_info_failure(mock_requests_get, mock_merge_requests):
         mock_requests_get.return_value = mock_response
 
         # Act
-        pr_info = github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
+        pr_info = github_api.get_existing_pr()
 
     # Assert
     assert pr_info is None
@@ -446,8 +446,7 @@ def test_update_pull_request_success(mock_requests_patch, mock_merge_requests):
 
     # Act
     with patch('builtins.print') as mock_print:
-        github_api.update_pull_request("https://api.github.com/repos/owner/repo/pulls/1",
-                                       title="Updated Title", body="Updated Body")
+        github_api.update_pull_request(pr_number=1, title="Updated Title", body="Updated Body")
 
     # Assert
     mock_requests_patch.assert_called_once_with(
@@ -481,8 +480,7 @@ def test_update_pull_request_failure(mock_requests_patch, mock_merge_requests):
 
     # Act
     with patch('builtins.print') as mock_print:
-        github_api.update_pull_request(
-            "https://api.github.com/repos/owner/repo/pulls/1", title="Title", body="Body")
+        github_api.update_pull_request(pr_number=1, title="Title", body="Body")
 
     # Assert
     mock_requests_patch.assert_called_once()
@@ -523,7 +521,7 @@ def test_get_existing_pr_info_no_api_key(mock_requests_get):
     with patch.dict(os.environ, {}, clear=True):
         # Act & Assert
         with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
-            github_api.get_existing_pr("https://api.github.com/repos/owner/repo/pulls")
+            github_api.get_existing_pr()
 
 # --------------------------
 # update_pull_request Integration Tests
@@ -541,6 +539,6 @@ def test_update_pull_request_no_api_key(mock_requests_patch):
     with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
             github_api.update_pull_request(
-                "https://api.github.com/repos/owner/repo/pulls/1",
-                "Title",
-                "Body")
+                pr_number=1,
+                title="Title",
+                body="Body")

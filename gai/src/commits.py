@@ -38,6 +38,7 @@ class Commits:
     def format_commits(self, result: str) -> str:
         commits = result.split('\n')
         formatted_commits = [f"- {commit}" for commit in commits]
+
         return "Changes:\n" + "\n".join(formatted_commits)
 
     def get_commits(self, remote_repo: str, target_branch: str, source_branch: str) -> str:
@@ -63,5 +64,4 @@ class Commits:
             return result.stdout.strip()
 
         except subprocess.CalledProcessError as e:
-
-            return f"Error fetching commits: {e}"
+            raise e

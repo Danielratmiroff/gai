@@ -16,10 +16,12 @@ class Gitlab_api():
         self.target_branch = config_manager.get_config('target_branch')
         self.assignee_id = config_manager.get_config('assignee_id')
 
-    def construct_project_url(self) -> str:
+
+    def get_api_url(self) -> str:
+        gitlab_domain = self.Merge_requests.get_remote_url()
         repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
         repo_name = self.Merge_requests.get_repo_from_remote_url()
-        return f"{repo_owner}%2F{repo_name}"
+        return f"https://{gitlab_domain}/api/v4/projects/{repo_owner}%2F{repo_name}/merge_requests"
 
     def get_api_key(self):
         api_key = os.environ.get("GITLAB_PRIVATE_TOKEN")
@@ -35,15 +37,14 @@ class Gitlab_api():
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         return result.stdout.strip()
 
-    def get_existing_merge_request(self, project: str, source_branch: str) -> dict:
+    def get_existing_merge_request(self, source_branch: str) -> dict:
         """
         Get existing merge request for the current branch.
         """
-        gitlab_url = self.Merge_requests.get_remote_url()
         api_key = self.get_api_key()
 
         response = requests.get(
-            f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
+            f"{self.get_api_url()}",
             headers={"PRIVATE-TOKEN": api_key},
             params={
                 "source_branch": source_branch,
@@ -56,11 +57,10 @@ class Gitlab_api():
             return mrs[0] if mrs else None
         return None
 
-    def update_merge_request(self, project: str, mr_id: int, title: str, description: str) -> None:
+    def update_merge_request(self, mr_id: int, title: str, description: str) -> None:
         """
         Update an existing merge request.
         """
-        gitlab_url = self.Merge_requests.get_remote_url()
         api_key = self.get_api_key()
 
         data = {
@@ -69,7 +69,7 @@ class Gitlab_api():
         }
 
         response = requests.put(
-            f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests/{mr_id}",
+            f"{self.get_api_url()}/{mr_id}",
             headers={"PRIVATE-TOKEN": api_key},
             json=data
         )
@@ -81,18 +81,14 @@ class Gitlab_api():
             print(f"Response text: {response.text}")
 
     def create_merge_request(self, title: str, description: str) -> None:
-        gitlab_url = self.Merge_requests.get_remote_url()
-
-        project = self.construct_project_url()
         api_key = self.get_api_key()
         source_branch = self.get_current_branch()
 
-        existing_mr = self.get_existing_merge_request(project, source_branch)
+        existing_mr = self.get_existing_merge_request(source_branch)
 
         if existing_mr:
             print(f"A merge request already exists: {existing_mr['web_url']}")
             self.update_merge_request(
-                project=project,
                 mr_id=existing_mr['iid'],
                 title=title,
                 description=description
@@ -108,7 +104,7 @@ class Gitlab_api():
             }
 
             response = requests.post(
-                f"https://{gitlab_url}/api/v4/projects/{project}/merge_requests",
+                f"{self.get_api_url()}",
                 headers={"PRIVATE-TOKEN": api_key},
                 json=data
             )

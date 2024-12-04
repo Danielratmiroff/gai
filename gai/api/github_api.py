@@ -10,6 +10,7 @@ class Github_api():
     def __init__(self):
         self.Merge_requests = Merge_requests().get_instance()
         self.load_config()
+        self.api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/pulls"
 
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
@@ -35,19 +36,16 @@ class Github_api():
         return result.stdout.strip()
 
     def create_pull_request(self, title: str, body: str) -> None:
-        api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/pulls"
-
         source_branch = self.get_current_branch()
         api_key = self.get_api_key()
 
-        existing_pr = self.get_existing_pr(api_url=api_url)
+        existing_pr = self.get_existing_pr()
 
         if existing_pr:
             pr_number = existing_pr['number']
-            existing_pr_url = f"{api_url}/{pr_number}"
             print(f"A pull request already exists: {existing_pr['html_url']}")
             self.update_pull_request(
-                api_url=existing_pr_url,
+                pr_number=pr_number,
                 title=title,
                 body=body
             )
@@ -60,7 +58,7 @@ class Github_api():
             }
 
             response = requests.post(
-                api_url,
+                self.api_url,
                 headers={
                     "Authorization": f"token {api_key}",
                     "Accept": "application/vnd.github.v3+json"
@@ -77,7 +75,7 @@ class Github_api():
                 error_message = response.json()
                 print(f"Error message: {error_message}")
 
-    def get_existing_pr(self, api_url: str) -> dict:
+    def get_existing_pr(self) -> dict:
         """
         Get existing pull request for the current branch.
         """
@@ -85,7 +83,7 @@ class Github_api():
         source_branch = self.get_current_branch()
 
         response = requests.get(
-            api_url,
+            self.api_url,
             headers={
                 "Authorization": f"token {api_key}",
                 "Accept": "application/vnd.github.v3+json"
@@ -101,7 +99,7 @@ class Github_api():
             return prs[0] if prs else None
         return None
 
-    def update_pull_request(self, api_url: str, body: str, title: str) -> None:
+    def update_pull_request(self, pr_number: int, title: str, body: str) -> None:
         """
         Update an existing pull request.
         """
@@ -113,7 +111,7 @@ class Github_api():
         }
 
         response = requests.patch(
-            api_url,
+            f"{self.api_url}/{pr_number}",
             headers={
                 "Authorization": f"token {api_key}",
                 "Accept": "application/vnd.github.v3+json"
