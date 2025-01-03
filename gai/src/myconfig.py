@@ -22,7 +22,7 @@ DEFAULT_CONFIG = {
 
 GROQ_MODELS: List[Models] = [
     Models(
-        model_name="llama-3.1-70b-versatile",
+        model_name="llama-3.3-70b-versatile",
         max_tokens=8000
     )
     # Models(
