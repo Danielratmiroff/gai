@@ -82,7 +82,7 @@ Options:
 # Simply
 gai commit -a
 # Or
-gai commit -a -t 0.5 -i huggingface
+gai commit -a -i huggingface
 ```
 
 ### 🔀 Merge Requests
@@ -106,7 +106,7 @@ Options:
 # Simply
 gai merge -p
 # Or
-gai merge origin -p -tb develop -t 0.8 -i groq
+gai merge origin -p -tb develop -i groq
 ```
 
 ## 🛠 Build Instructions
