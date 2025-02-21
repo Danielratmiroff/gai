@@ -132,9 +132,9 @@ class Prompts:
             Focus on the overall purpose and impact of the merge.
 
             Formatting:
-            _MUST_ Reply the merge description as a STRING, not a list.
-            _MUST_ NOT_ Include any additional text or information outside the merge description.
             _MUST_ be VERY CONCISE and to the point. Summarize the changes in bullet points.
+            _MUST NOT_ Reply the merge description as list of options.
+            _MUST NOT_ Include any additional text or information outside the merge description.
 
             Examples:
             Good example: "This merge request includes the following changes: - Fix issue where..."
