@@ -60,6 +60,22 @@ def mock_ai_client_response(response):
 # --------------------------
 # parse_response Method Tests
 # --------------------------
+def test_parse_reasoning_response_valid_json(display_choices_instance):
+    REASONING_RESPONSE = 'changes:\n\n1. **Option `1`**: Add parameter.\n2. **Option `2`**: "📄" content tags.\n3. **Option `3`**: Describe handling.\n\n```json\n["Option 1", \n "Option 2", \n "Option 3"]\n```'
+    response = REASONING_RESPONSE
+
+    expected = ['Option 1', 'Option 2', 'Option 3']
+    assert display_choices_instance.parse_response(
+        response) == expected, "Should parse valid response correctly"
+
+
+def test_parse_reasoning_response_valid(display_choices_instance):
+    REASONING_RESPONSE = '<think>\nAlright,\n\nFirst, I\'m a dummy reasoning {self.dummy}, so that\'s straightforward</think>\n\n["Option 1", "Option 2", "Option 3"]'
+    response = REASONING_RESPONSE
+
+    expected = ['Option 1', 'Option 2', 'Option 3']
+    assert display_choices_instance.parse_response(
+        response) == expected, "Should parse valid response correctly"
 
 
 def test_parse_response_valid(display_choices_instance):

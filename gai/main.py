@@ -1,12 +1,13 @@
-from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG
-from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient
+from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS
+from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient
 import os
 import yaml
 import subprocess
 from dataclasses import dataclass
 import argparse
 import logging
-# Suppress transformers logging as we don't need it
+
+from gai.src.utils import create_system_message, create_user_message
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
@@ -100,9 +101,9 @@ class Main:
         return parser.parse_args()
 
     def init_ai_client(self):
+        print(f"Using {self.interface} as ai interface")
         match self.interface:
             case "huggingface":
-                print("Using Huggingface as ai interface")
                 model = HUGGING_FACE_MODELS[0]
 
                 client = HuggingClient(
@@ -114,8 +115,7 @@ class Main:
                 if self.ConfigManager.get_config('interface') != 'huggingface':
                     self.ConfigManager.update_config('interface', 'huggingface')
 
-            case _:
-                print("Using Groq as ai interface")
+            case "groq":
                 model = GROQ_MODELS[0]
 
                 client = GroqClient(
@@ -127,15 +127,28 @@ class Main:
                 if self.ConfigManager.get_config('interface') != 'groq':
                     self.ConfigManager.update_config('interface', 'groq')
 
+            # Default to ollama
+            case _:
+                model = OLLAMA_MODELS[4]
+
+                client = OllamaClient(
+                    model=model.model_name,
+                    temperature=self.temperature,
+                    max_tokens=model.max_tokens
+                )
+                # Set as default if not already set
+                if self.ConfigManager.get_config('interface') != 'ollama':
+                    self.ConfigManager.update_config('interface', 'ollama')
+
         return client.get_chat_completion
 
     def do_merge_request(self):
-
         mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()
         current_branch = get_current_branch()
         system_prompt = self.Prompt.build_merge_title_system_prompt()
+        system_description_prompt = self.Prompt.build_merge_description_system_prompt()
 
         # Get description
         try:
@@ -155,6 +168,14 @@ class Main:
                 user_msg=all_commits,
                 sys_prompt=system_prompt,
                 ai_client=self.ai_client)
+
+            # Get description
+            mr_description = self.ai_client(
+                user_message=[
+                    create_system_message(system_description_prompt),
+                    create_user_message(all_commits)
+                ]
+            )
         except Exception as e:
             print(f"Exiting... {e}")
             return
@@ -167,18 +188,17 @@ class Main:
         print("Creating pull request...")
         print(f"From {current_branch} to {self.target_branch}")
         print(f"Title: {selected_title}")
-        # print(f"{all_commits}")
 
         match platform:
             case "gitlab":
                 self.Gitlab.create_merge_request(
                     title=selected_title,
-                    description=all_commits)
+                    description=mr_description)
 
             case "github":
                 self.Github.create_pull_request(
                     title=selected_title,
-                    body=all_commits)
+                    body=mr_description)
             case _:
                 raise ValueError(
                     "Platform not supported. Only github and gitlab are supported.")

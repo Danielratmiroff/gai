@@ -3,6 +3,8 @@ from enum import Enum
 from typing import Dict, List, Callable
 from colorama import Fore, Style
 from pick import pick
+import re
+import ast
 
 from gai.src.prompts import Prompts
 from gai.src.utils import create_user_message, create_system_message
@@ -21,14 +23,30 @@ class DisplayChoices:
 
     def parse_response(self, response: str) -> list:
         try:
+            # Extract content after </think> tag if present
+            if "</think>" in response:
+                response = response.split("</think>", 1)[1].strip()
+
+            # Only extract JSON block if "```json" is in the response
+            if "```json" in response:
+                json_match = re.search(r"```json\s*(.*?)\s*```", response, re.DOTALL)
+                if json_match:
+                    response = json_match.group(1)
+
+            # Only extract code block if "```" is in the response
+            if "```markdown" in response:
+                json_match = re.search(r"```markdown\s*(.*?)\s*```", response, re.DOTALL)
+                if json_match:
+                    response = json_match.group(1)
+
             result = ast.literal_eval(response)
             if not isinstance(result, list):
                 raise ValueError("Response must evaluate to a list")
             return result
+
         except (ValueError, SyntaxError) as e:
-            print(f"Debug - Response that failed parsing: {repr(response)}")  # Show exact string content
-            raise ValueError(
-                f"\n\nFailed to parse response into list. Error: {str(e)}") from e
+            print(f"Debug - Response that failed parsing: {repr(response)}")
+            raise ValueError(f"\n\nFailed to parse response into list. Error: {str(e)}") from e
 
     def display_choices(self, items: list, title="Please select an option:"):
         items_refined = items + [OPTIONS.TRY_AGAIN.value, OPTIONS.EXIT.value]

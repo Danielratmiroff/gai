@@ -22,9 +22,6 @@ class GroqClient:
         #     model='meta-llama/Meta-Llama-3-8B-Instruct',
         # )
 
-    def get_system_prompt(self):
-        return Prompts().build_commit_message_system_prompt()
-
     def get_chat_completion(self,
                             user_message: List[Dict[str, str]]
                             ):
