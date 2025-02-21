@@ -31,7 +31,6 @@ class OllamaClient:
                             ):
 
         validate_messages(messages=user_message)
-        print(f"User message: {user_message}")
 
         ai_response = self.client.invoke(user_message)
         return ai_response.content
