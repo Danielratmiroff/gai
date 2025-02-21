@@ -24,6 +24,7 @@ class Prompts:
 
     def build_commit_message_system_prompt(self) -> str:
         return """<instructions>
+            You are an expert git commit message generator.
             You will be provided with git diffs from a local repository.
             Your task is to analyze these diffs thoroughly—including all changes,
             file names, and relevant context—to generate up to three concise and
@@ -57,6 +58,14 @@ class Prompts:
             Formatting:
             _MUST_ Reply the commit messages as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
             _MUST NOT_ Include any additional text or information outside the commit messages list. 
+
+            Examples:
+            Good example: "["Fix issue", "Update dependency", "Add feature"]"
+            Good example: "["Update dependency", "Add feature", "Fix issue"]"
+            Bad example: "1. Fix issue\n2. Update dependency\n3. Add feature"
+            Bad example: "```json\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            Bad example: "```markdown\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            Bad example: "```python\n["Fix issue", "Update dependency", "Add feature"]\n```"
             </instructions>
           """
 
