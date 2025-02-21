@@ -162,20 +162,20 @@ class Main:
 
         all_commits = self.Commits.format_commits(commits)
 
-        # Get Merge Request information
+        # Get title
         try:
-            # Get title
             selected_title = self.DisplayChoices.render_choices_with_try_again(
                 user_msg=all_commits,
                 sys_prompt=system_prompt,
                 ai_client=self.ai_client)
 
             # Get description
-            mr_description = self.DisplayChoices.render_choices_with_try_again(
-                user_msg=all_commits,
-                sys_prompt=system_description_prompt,
-                ai_client=self.ai_client)
-
+            mr_description = self.ai_client(
+                user_message=[
+                    create_system_message(system_description_prompt),
+                    create_user_message(all_commits)
+                ]
+            )
         except Exception as e:
             print(f"Exiting... {e}")
             return

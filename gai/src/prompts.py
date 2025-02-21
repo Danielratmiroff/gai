@@ -130,4 +130,18 @@ class Prompts:
             Generate a Human-Understandable and Summarized Merge Description:
             Summarize the essence of the combined changes in clear and concise language.
             Focus on the overall purpose and impact of the merge.
+
+            Formatting:
+            _MUST_ Reply the merge description as a STRING, not a list.
+            _MUST_ NOT_ Include any additional text or information outside the merge description.
+
+            Examples:
+            Good example: "This merge request includes the following changes: - Fix issue where..."
+            Good example: "This merge tries to fix the issue where..."
+            Bad example: "["Fix issue", "Update dependency", "Add feature"]"
+            Bad example: "1. Fix issue\n2. Update dependency\n3. Add feature"
+            Bad example: "```json\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            Bad example: "```markdown\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            Bad example: "```python\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            </instructions>
             """
