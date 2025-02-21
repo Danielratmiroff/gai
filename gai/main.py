@@ -173,10 +173,11 @@ class Main:
 
         # Get description
         system_description_prompt = self.Prompt.build_merge_description_system_prompt()
-        mr_description = self.ai_client(
+        new_ai_client = self.init_ai_client()
+        mr_description = new_ai_client(
             user_message=[
-                create_system_message(system_description_prompt.copy()),
-                create_user_message(all_commits.copy())
+                create_system_message(system_description_prompt),
+                create_user_message(all_commits)
             ]
         )
 

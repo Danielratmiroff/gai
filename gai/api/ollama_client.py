@@ -20,6 +20,7 @@ class OllamaClient:
             max_tokens=max_tokens,
             stream=False
         )
+
         self.model = model
         self.temperature = temperature
         self.max_tokens = max_tokens
