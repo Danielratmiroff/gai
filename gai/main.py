@@ -148,6 +148,7 @@ class Main:
         platform = mr.get_remote_platform()
         current_branch = get_current_branch()
         system_prompt = self.Prompt.build_merge_title_system_prompt()
+        system_description_prompt = self.Prompt.build_merge_description_system_prompt()
 
         # Get description
         try:
@@ -161,24 +162,23 @@ class Main:
 
         all_commits = self.Commits.format_commits(commits)
 
-        # Get title
+        # Get Merge Request information
         try:
+            # Get title
             selected_title = self.DisplayChoices.render_choices_with_try_again(
                 user_msg=all_commits,
                 sys_prompt=system_prompt,
                 ai_client=self.ai_client)
+
+            # Get description
+            mr_description = self.DisplayChoices.render_choices_with_try_again(
+                user_msg=all_commits,
+                sys_prompt=system_description_prompt,
+                ai_client=self.ai_client)
+
         except Exception as e:
             print(f"Exiting... {e}")
             return
-
-        # Get description
-        system_description_prompt = self.Prompt.build_merge_description_system_prompt()
-        mr_description = self.ai_client(
-            user_message=[
-                create_system_message(system_description_prompt),
-                create_user_message(all_commits.copy())
-            ]
-        )
 
         # Get ticket identifier
         ticket_id = mr.get_ticket_identifier(current_branch, self.ai_client)
