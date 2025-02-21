@@ -33,6 +33,12 @@ class DisplayChoices:
                 if json_match:
                     response = json_match.group(1)
 
+            # Only extract code block if "```" is in the response
+            if "```markdown" in response:
+                json_match = re.search(r"```markdown\s*(.*?)\s*```", response, re.DOTALL)
+                if json_match:
+                    response = json_match.group(1)
+
             result = ast.literal_eval(response)
             if not isinstance(result, list):
                 print(f"Result: {result}")

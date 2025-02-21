@@ -52,6 +52,22 @@ OLLAMA_MODELS: List[Models] = [
         model_name="deepseek-r1:1.5b",
         max_tokens=8000
     ),
+    Models(
+        model_name="deepseek-r1:7b",
+        max_tokens=8000
+    ),
+    Models(
+        model_name="deepseek-r1:8b",
+        max_tokens=8000
+    ),
+    Models(
+        model_name="deepseek-r1:14b",
+        max_tokens=8000
+    ),
+    Models(
+        model_name="phi4",
+        max_tokens=8000
+    ),
 ]
 
 

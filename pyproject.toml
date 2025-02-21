@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "gai"
-version = "0.1.0"
-description = ""
-authors = ["bot <danielratmiroff@gmail.com>"]
+version = "0.3.0"
+description = "AI-Powered Automation Tool for Git 🚀"
+authors = ["Daniel Ratmiroff <danielratmiroff@pm.me>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

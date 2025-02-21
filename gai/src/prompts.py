@@ -56,7 +56,7 @@ class Prompts:
 
             Formatting:
             _MUST_ Reply the commit messages as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
-            _MUST_ Do not include any additional text outside the commit messages
+            _MUST NOT_ Include any additional text or information outside the commit messages list. 
             </instructions>
           """
 

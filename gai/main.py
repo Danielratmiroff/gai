@@ -115,7 +115,7 @@ class Main:
                     self.ConfigManager.update_config('interface', 'huggingface')
 
             case "ollama":
-                model = OLLAMA_MODELS[0]
+                model = OLLAMA_MODELS[4]
 
                 client = OllamaClient(
                     model=model.model_name,
