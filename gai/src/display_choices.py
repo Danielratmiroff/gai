@@ -41,9 +41,9 @@ class DisplayChoices:
 
             result = ast.literal_eval(response)
             if not isinstance(result, list):
-                print(f"Result: {result}")
                 raise ValueError("Response must evaluate to a list")
             return result
+
         except (ValueError, SyntaxError) as e:
             print(f"Debug - Response that failed parsing: {repr(response)}")
             raise ValueError(f"\n\nFailed to parse response into list. Error: {str(e)}") from e

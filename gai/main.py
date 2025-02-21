@@ -114,19 +114,7 @@ class Main:
                 if self.ConfigManager.get_config('interface') != 'huggingface':
                     self.ConfigManager.update_config('interface', 'huggingface')
 
-            case "ollama":
-                model = OLLAMA_MODELS[4]
-
-                client = OllamaClient(
-                    model=model.model_name,
-                    temperature=self.temperature,
-                    max_tokens=model.max_tokens
-                )
-                # Set as default if not already set
-                if self.ConfigManager.get_config('interface') != 'ollama':
-                    self.ConfigManager.update_config('interface', 'ollama')
-
-            case _:
+            case "groq":
                 model = GROQ_MODELS[0]
 
                 client = GroqClient(
@@ -137,6 +125,19 @@ class Main:
                 # Set as default if not already set
                 if self.ConfigManager.get_config('interface') != 'groq':
                     self.ConfigManager.update_config('interface', 'groq')
+
+            # Default to ollama
+            case _:
+                model = OLLAMA_MODELS[4]
+
+                client = OllamaClient(
+                    model=model.model_name,
+                    temperature=self.temperature,
+                    max_tokens=model.max_tokens
+                )
+                # Set as default if not already set
+                if self.ConfigManager.get_config('interface') != 'ollama':
+                    self.ConfigManager.update_config('interface', 'ollama')
 
         return client.get_chat_completion
 
