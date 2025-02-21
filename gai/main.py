@@ -8,7 +8,6 @@ import argparse
 import logging
 
 from gai.src.utils import create_system_message, create_user_message
-# Suppress transformers logging as we don't need it
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
@@ -176,8 +175,8 @@ class Main:
         system_description_prompt = self.Prompt.build_merge_description_system_prompt()
         mr_description = self.ai_client(
             user_message=[
-                create_system_message(system_description_prompt),
-                create_user_message(all_commits)
+                create_system_message(system_description_prompt.copy()),
+                create_user_message(all_commits.copy())
             ]
         )
 
