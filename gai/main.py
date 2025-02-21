@@ -1,5 +1,5 @@
-from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG
-from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient
+from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS
+from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient
 import os
 import yaml
 import subprocess
@@ -100,9 +100,9 @@ class Main:
         return parser.parse_args()
 
     def init_ai_client(self):
+        print(f"hey Using {self.interface} as ai interface")
         match self.interface:
             case "huggingface":
-                print("Using Huggingface as ai interface")
                 model = HUGGING_FACE_MODELS[0]
 
                 client = HuggingClient(
@@ -114,8 +114,19 @@ class Main:
                 if self.ConfigManager.get_config('interface') != 'huggingface':
                     self.ConfigManager.update_config('interface', 'huggingface')
 
+            case "ollama":
+                model = OLLAMA_MODELS[0]
+
+                client = OllamaClient(
+                    model=model.model_name,
+                    temperature=self.temperature,
+                    max_tokens=model.max_tokens
+                )
+                # Set as default if not already set
+                if self.ConfigManager.get_config('interface') != 'ollama':
+                    self.ConfigManager.update_config('interface', 'ollama')
+
             case _:
-                print("Using Groq as ai interface")
                 model = GROQ_MODELS[0]
 
                 client = GroqClient(

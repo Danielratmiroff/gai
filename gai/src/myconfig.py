@@ -47,6 +47,13 @@ HUGGING_FACE_MODELS: List[Models] = [
     # )
 ]
 
+OLLAMA_MODELS: List[Models] = [
+    Models(
+        model_name="deepseek-r1:1.5b",
+        max_tokens=8000
+    ),
+]
+
 
 class ConfigManager:
     def __init__(
