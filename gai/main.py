@@ -100,7 +100,7 @@ class Main:
         return parser.parse_args()
 
     def init_ai_client(self):
-        print(f"hey Using {self.interface} as ai interface")
+        print(f"Using {self.interface} as ai interface")
         match self.interface:
             case "huggingface":
                 model = HUGGING_FACE_MODELS[0]
@@ -141,7 +141,6 @@ class Main:
         return client.get_chat_completion
 
     def do_merge_request(self):
-
         mr = Merge_requests().get_instance()
 
         platform = mr.get_remote_platform()

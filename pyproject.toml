@@ -36,6 +36,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 gai = "gai.main:main"
+test = "tests.main:main"
 
 [tool.poetry.urls]
 homepage = "https://github.com/Danielratmiroff/gai"

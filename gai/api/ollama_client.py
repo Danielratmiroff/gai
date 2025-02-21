@@ -33,8 +33,6 @@ class OllamaClient:
                             ):
 
         validate_messages(messages=user_message)
-        print(user_message)
 
-        chat_completion = self.client.invoke(user_message)
-        print(chat_completion)
-        # return chat_completion.choices[0].message.content
+        ai_response = self.client.invoke(user_message)
+        return ai_response.content
