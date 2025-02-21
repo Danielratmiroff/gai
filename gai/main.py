@@ -6,6 +6,8 @@ import subprocess
 from dataclasses import dataclass
 import argparse
 import logging
+
+from gai.src.utils import create_system_message, create_user_message
 # Suppress transformers logging as we don't need it
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
@@ -170,6 +172,15 @@ class Main:
             print(f"Exiting... {e}")
             return
 
+        # Get description
+        system_description_prompt = self.Prompt.build_merge_description_system_prompt()
+        mr_description = self.ai_client(
+            user_message=[
+                create_system_message(system_description_prompt),
+                create_user_message(all_commits)
+            ]
+        )
+
         # Get ticket identifier
         ticket_id = mr.get_ticket_identifier(current_branch, self.ai_client)
         if ticket_id:
@@ -178,18 +189,17 @@ class Main:
         print("Creating pull request...")
         print(f"From {current_branch} to {self.target_branch}")
         print(f"Title: {selected_title}")
-        # print(f"{all_commits}")
 
         match platform:
             case "gitlab":
                 self.Gitlab.create_merge_request(
                     title=selected_title,
-                    description=all_commits)
+                    description=mr_description)
 
             case "github":
                 self.Github.create_pull_request(
                     title=selected_title,
-                    body=all_commits)
+                    body=mr_description)
             case _:
                 raise ValueError(
                     "Platform not supported. Only github and gitlab are supported.")

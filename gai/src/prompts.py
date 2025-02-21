@@ -99,7 +99,35 @@ class Prompts:
             _MUST_ NOT include irrelevant information or personal comments or opinions
 
             Formatting:
-            Present the pull request titles as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
-            _MUST_ Do not include any additional text outside the pull request titles.
+            _MUST_ Reply the pull request titles as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
+            _MUST NOT_ Include any additional text or information outside the pull request titles list. 
+
+            Examples:
+            Good example: "["Fix issue", "Update dependency", "Add feature"]"
+            Good example: "["Update dependency", "Add feature", "Fix issue"]"
+            Bad example: "1. Fix issue\n2. Update dependency\n3. Add feature"
+            Bad example: "```json\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            Bad example: "```markdown\n["Fix issue", "Update dependency", "Add feature"]\n```"
+            Bad example: "```python\n["Fix issue", "Update dependency", "Add feature"]\n```"
             </instructions>
           """
+
+    def build_merge_description_system_prompt(self) -> str:
+        return """<instructions>
+            You are an expert git merge description generator.
+            You will be provided with a list of git commits from a local branch.
+            Your task is to analyze all the changes represented by these commits thoroughly—including code changes,
+            commit messages, and any relevant context—to generate up to three concise and 
+            meaningful merge description options that accurately summarize the overall changes.
+
+            Requirements:
+
+            Analyze All Changes:
+            Read through all the commit messages and, if available, the associated code changes.
+            Understand the cumulative purpose and impact of the changes.
+            Identify overarching themes or significant modifications that span multiple commits.
+
+            Generate a Human-Understandable and Summarized Merge Description:
+            Summarize the essence of the combined changes in clear and concise language.
+            Focus on the overall purpose and impact of the merge.
+            """
