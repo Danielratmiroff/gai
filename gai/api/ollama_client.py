@@ -24,9 +24,6 @@ class OllamaClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
-    def get_system_prompt(self):
-        return Prompts().build_commit_message_system_prompt()
-
     # Invoke the ollama client
     def get_chat_completion(self,
                             user_message: List[Dict[str, str]]
