@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "gai"
+name = "gai-tool"
 version = "0.3.0"
 description = "AI-Powered Automation Tool for Git 🚀"
 authors = ["Daniel Ratmiroff <danielratmiroff@pm.me>"]
@@ -36,7 +36,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-gai = "gai.main:main"
+gai = "gai_tool.main:main"
 test = "tests.main:main"
 
 [tool.poetry.urls]

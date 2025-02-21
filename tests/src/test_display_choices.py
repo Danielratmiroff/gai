@@ -4,9 +4,9 @@ import pytest
 from unittest.mock import patch, Mock, call
 import ast
 
-from gai.src.display_choices import DisplayChoices, OPTIONS
-from gai.src.prompts import Prompts
-from gai.src.utils import create_user_message, create_system_message
+from gai_tool.src.display_choices import DisplayChoices, OPTIONS
+from gai_tool.src.prompts import Prompts
+from gai_tool.src.utils import create_user_message, create_system_message
 
 # --------------------------
 # Fixtures
@@ -26,7 +26,7 @@ def mock_pick_success():
     """
     Fixture to mock the pick function for successful selections.
     """
-    with patch('gai.src.display_choices.pick') as mock_pick:
+    with patch('gai_tool.src.display_choices.pick') as mock_pick:
         yield mock_pick
 
 
@@ -35,7 +35,7 @@ def mock_pick_exit():
     """
     Fixture to mock the pick function selecting the EXIT option.
     """
-    with patch('gai.src.display_choices.pick') as mock_pick:
+    with patch('gai_tool.src.display_choices.pick') as mock_pick:
         mock_pick.return_value = (OPTIONS.EXIT.value, None)
         yield mock_pick
 

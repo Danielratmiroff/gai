@@ -3,7 +3,7 @@ import requests
 import yaml
 import subprocess
 
-from gai.src import Merge_requests, ConfigManager, get_app_name
+from gai_tool.src import Merge_requests, ConfigManager, get_app_name
 
 
 class Gitlab_api():
@@ -15,7 +15,6 @@ class Gitlab_api():
         config_manager = ConfigManager(get_app_name())
         self.target_branch = config_manager.get_config('target_branch')
         self.assignee_id = config_manager.get_config('assignee_id')
-
 
     def get_api_url(self) -> str:
         gitlab_domain = self.Merge_requests.get_remote_url()

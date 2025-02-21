@@ -1,5 +1,5 @@
-from gai.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS
-from gai.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient
+from gai_tool.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS
+from gai_tool.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient
 import os
 import yaml
 import subprocess
@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import argparse
 import logging
 
-from gai.src.utils import create_system_message, create_user_message
+from gai_tool.src.utils import create_system_message, create_user_message
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 

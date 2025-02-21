@@ -3,7 +3,7 @@ import os
 import subprocess
 from unittest.mock import MagicMock, patch, Mock
 
-from gai.api.github_api import Github_api
+from gai_tool.api.github_api import Github_api
 
 # --------------------------
 # Fixtures
@@ -15,7 +15,7 @@ def mock_merge_requests():
     """
     Fixture to mock the Merge_requests class and its methods.
     """
-    with patch('gai.api.github_api.Merge_requests') as mock_mr_class:
+    with patch('gai_tool.api.github_api.Merge_requests') as mock_mr_class:
         mock_mr_instance = Mock()
         mock_mr_class.return_value.get_instance.return_value = mock_mr_instance
 
@@ -30,7 +30,7 @@ def mock_config_manager():
     """
     Fixture to mock the ConfigManager class and its methods.
     """
-    with patch('gai.api.github_api.ConfigManager') as mock_cm_class:
+    with patch('gai_tool.api.github_api.ConfigManager') as mock_cm_class:
         mock_cm_instance = Mock()
         mock_cm_class.return_value = mock_cm_instance
 
@@ -43,7 +43,7 @@ def mock_get_app_name():
     """
     Fixture to mock the get_app_name function.
     """
-    with patch('gai.api.github_api.get_app_name') as mock_get_app_name_fn:
+    with patch('gai_tool.api.github_api.get_app_name') as mock_get_app_name_fn:
         mock_get_app_name_fn.return_value = "test_app"
         yield mock_get_app_name_fn
 
@@ -53,7 +53,7 @@ def mock_subprocess_run_success():
     """
     Fixture to mock subprocess.run for successful executions.
     """
-    with patch('gai.api.github_api.subprocess.run') as mock_run:
+    with patch('gai_tool.api.github_api.subprocess.run') as mock_run:
         yield mock_run
 
 
@@ -62,7 +62,7 @@ def mock_subprocess_run_failure():
     """
     Fixture to mock subprocess.run to raise CalledProcessError.
     """
-    with patch('gai.api.github_api.subprocess.run') as mock_run:
+    with patch('gai_tool.api.github_api.subprocess.run') as mock_run:
         mock_run.side_effect = subprocess.CalledProcessError(1, ['git', 'command'])
         yield mock_run
 
@@ -72,7 +72,7 @@ def mock_requests_post():
     """
     Fixture to mock requests.post.
     """
-    with patch('gai.api.github_api.requests.post') as mock_post:
+    with patch('gai_tool.api.github_api.requests.post') as mock_post:
         yield mock_post
 
 
@@ -81,7 +81,7 @@ def mock_requests_get():
     """
     Fixture to mock requests.get.
     """
-    with patch('gai.api.github_api.requests.get') as mock_get:
+    with patch('gai_tool.api.github_api.requests.get') as mock_get:
         yield mock_get
 
 
@@ -90,7 +90,7 @@ def mock_requests_patch():
     """
     Fixture to mock requests.patch.
     """
-    with patch('gai.api.github_api.requests.patch') as mock_patch:
+    with patch('gai_tool.api.github_api.requests.patch') as mock_patch:
         yield mock_patch
 
 # --------------------------

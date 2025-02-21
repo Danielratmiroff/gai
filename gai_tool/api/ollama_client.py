@@ -3,9 +3,9 @@ import os
 from typing import Dict, List
 from langchain_ollama import ChatOllama
 
-from gai.src import Prompts, print_tokens
-from gai.api.token_counter import TokenCounter
-from gai.src.utils import create_system_message, get_api_huggingface_key, validate_messages
+from gai_tool.src import Prompts, print_tokens
+from gai_tool.api.token_counter import TokenCounter
+from gai_tool.src.utils import create_system_message, get_api_huggingface_key, validate_messages
 
 
 class OllamaClient:

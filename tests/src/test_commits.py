@@ -2,7 +2,7 @@ import pytest
 import subprocess
 from unittest.mock import patch, Mock
 
-from gai.src.commits import Commits
+from gai_tool.src.commits import Commits
 
 # --------------------------
 # Fixtures
@@ -15,7 +15,7 @@ def mock_subprocess_run_success():
     Fixture to mock subprocess.run for successful executions.
     Returns a mock that can be configured per test.
     """
-    with patch('gai.src.commits.subprocess.run') as mock_run:
+    with patch('gai_tool.src.commits.subprocess.run') as mock_run:
         yield mock_run
 
 
@@ -24,7 +24,7 @@ def mock_subprocess_run_failure():
     """
     Fixture to mock subprocess.run to raise CalledProcessError.
     """
-    with patch('gai.src.commits.subprocess.run') as mock_run:
+    with patch('gai_tool.src.commits.subprocess.run') as mock_run:
         mock_run.side_effect = subprocess.CalledProcessError(
             1, ['git', 'command'])
         yield mock_run
@@ -90,6 +90,7 @@ def test_get_commits_success(mock_subprocess_run_success, commit_instance):
         check=True
     )
 
+
 def test_get_commits_fetch_failure(mock_subprocess_run_failure, commit_instance):
     with pytest.raises(subprocess.CalledProcessError):
         commit_instance.get_commits("origin", "main", "feature-branch")
@@ -111,7 +112,8 @@ def test_get_commits_log_failure(mock_subprocess_run_success, commit_instance):
 
     with pytest.raises(subprocess.CalledProcessError) as excinfo:
         commit_instance.get_commits("origin", "main", "feature-branch")
-    assert "Command '['git', 'log', '--oneline', 'origin/main..feature-branch']' returned non-zero exit status 1." in str(excinfo.value)
+    assert "Command '['git', 'log', '--oneline', 'origin/main..feature-branch']' returned non-zero exit status 1." in str(
+        excinfo.value)
 
     # Verify fetch command was called
     mock_subprocess_run_success.assert_any_call(

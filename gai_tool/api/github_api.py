@@ -3,7 +3,7 @@ import requests
 import yaml
 import subprocess
 
-from gai.src import Merge_requests, ConfigManager, get_app_name
+from gai_tool.src import Merge_requests, ConfigManager, get_app_name
 
 
 class Github_api():

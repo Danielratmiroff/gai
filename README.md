@@ -116,7 +116,7 @@ Build gai-tool from source:
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/Danielratmiroff/gai.git
+   git clone https://github.com/Danielratmiroff/gai_tool.git
    ```
 
 2. **Navigate to the Project Directory**:
