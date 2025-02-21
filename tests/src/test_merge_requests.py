@@ -2,7 +2,7 @@ import pytest
 import subprocess
 from unittest.mock import patch, Mock
 
-from gai.src.merge_requests import Merge_requests, parse_repo_name, parse_repo_owner
+from gai_tool.src.merge_requests import Merge_requests, parse_repo_name, parse_repo_owner
 
 # --------------------------
 # Fixtures
@@ -25,7 +25,7 @@ def mock_subprocess_run_success():
     Fixture to mock subprocess.run for successful executions.
     Returns a mock that can be configured per test.
     """
-    with patch('gai.src.merge_requests.subprocess.run') as mock_run:
+    with patch('gai_tool.src.merge_requests.subprocess.run') as mock_run:
         yield mock_run
 
 
@@ -34,7 +34,7 @@ def mock_subprocess_run_failure():
     """
     Fixture to mock subprocess.run to raise CalledProcessError.
     """
-    with patch('gai.src.merge_requests.subprocess.run') as mock_run:
+    with patch('gai_tool.src.merge_requests.subprocess.run') as mock_run:
         mock_run.side_effect = subprocess.CalledProcessError(
             1, ['git', 'command'])
         yield mock_run
@@ -158,7 +158,7 @@ def test_parse_repo_owner_empty_owner():
         parse_repo_owner("/repo-name")
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_owner_from_remote_url_failure(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "invalid_url"
 
@@ -166,7 +166,7 @@ def test_get_repo_owner_from_remote_url_failure(mock_git_url, merge_requests_ins
         merge_requests_instance.get_repo_owner_from_remote_url()
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_owner_from_remote_url_success(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "github.com/owner/repo.git"
 
@@ -209,21 +209,21 @@ def test_parse_repo_name_invalid():
         parse_repo_name("github.com")
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_from_remote_ssh_success(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "github.com/user/repo.git"
     repo = merge_requests_instance.get_repo_from_remote_url()
     assert repo == "repo", "Should correctly parse the repository name from SSH URL"
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_from_remote_url_success(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "github.com/user/repo.git"
     repo = merge_requests_instance.get_repo_from_remote_url()
     assert repo == "repo", "Should correctly parse the repository name from HTTPS URL"
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_repo_from_remote_url_failure(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "invalid_url"
     repo = merge_requests_instance.get_repo_from_remote_url()
@@ -233,7 +233,7 @@ def test_get_repo_from_remote_url_failure(mock_git_url, merge_requests_instance)
 # --------------------------
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_remote_url_https(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "gitlab.com/user/repo.git"
     domain = merge_requests_instance.get_remote_url()
@@ -245,21 +245,21 @@ def test_get_remote_url_https(mock_git_url, merge_requests_instance):
 # --------------------------
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_remote_platform_github(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "https://github.com/user/repo.git"
     platform = merge_requests_instance.get_remote_platform()
     assert platform == "github", "Should identify GitHub platform"
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_remote_platform_gitlab(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "https://gitlab.com/user/repo.git"
     platform = merge_requests_instance.get_remote_platform()
     assert platform == "gitlab", "Should identify GitLab platform"
 
 
-@patch('gai.src.merge_requests.Merge_requests.git_repo_url')
+@patch('gai_tool.src.merge_requests.Merge_requests.git_repo_url')
 def test_get_remote_platform_unknown(mock_git_url, merge_requests_instance):
     mock_git_url.return_value = "https://bitbucket.org/user/repo.git"
     platform = merge_requests_instance.get_remote_platform()

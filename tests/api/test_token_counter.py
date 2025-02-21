@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from typing import List, Dict
 
-from gai.api.token_counter import TokenCounter
+from gai_tool.api.token_counter import TokenCounter
 
 # --------------------------
 # Fixtures
@@ -15,7 +15,7 @@ def mock_get_api_huggingface_key_fixture():
     """
     Fixture to mock the get_api_huggingface_key function.
     """
-    with patch('gai.api.token_counter.get_api_huggingface_key') as mock_get_key:
+    with patch('gai_tool.api.token_counter.get_api_huggingface_key') as mock_get_key:
         yield mock_get_key
 
 

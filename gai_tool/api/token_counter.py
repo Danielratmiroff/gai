@@ -1,3 +1,6 @@
+from gai_tool.src.utils import get_api_huggingface_key
+from transformers import AutoTokenizer
+from typing import List, Dict, Optional
 import logging
 import warnings
 import os
@@ -10,12 +13,6 @@ os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = 'true'
 
 # Set logging level to ERROR
 logging.getLogger("transformers").setLevel(logging.ERROR)
-
-from typing import List, Dict, Optional
-from transformers import AutoTokenizer
-import os
-
-from gai.src.utils import get_api_huggingface_key
 
 
 # Token counter only supports Huggingface models for now

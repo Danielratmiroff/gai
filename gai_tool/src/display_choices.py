@@ -6,8 +6,8 @@ from pick import pick
 import re
 import ast
 
-from gai.src.prompts import Prompts
-from gai.src.utils import create_user_message, create_system_message
+from gai_tool.src.prompts import Prompts
+from gai_tool.src.utils import create_user_message, create_system_message
 
 
 class OPTIONS(Enum):
