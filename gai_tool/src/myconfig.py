@@ -70,6 +70,13 @@ OLLAMA_MODELS: List[Models] = [
     ),
 ]
 
+GEMINI_MODELS: List[Models] = [
+    Models(
+        model_name="gemini-2.0-flash",
+        max_tokens=8000
+    )
+]
+
 
 class ConfigManager:
     def __init__(
