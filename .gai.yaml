@@ -1,0 +1,6 @@
+gitlab_assignee_id: 10437754
+interface: google
+max_tokens: 8000
+model: llama-3.1-8b-instant
+target_branch: master
+temperature: 0.7

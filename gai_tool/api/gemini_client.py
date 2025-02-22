@@ -27,7 +27,7 @@ class GeminiClient:
         Initialize the Gemini client.
 
         Args:
-            model_name: The name of the Gemini model to use
+            model: The name of the Gemini model to use
             temperature: Controls randomness in responses
             top_p: Nucleus sampling parameter
             top_k: Number of tokens to consider for sampling

@@ -25,20 +25,29 @@ pip install gai-tool
 
 ## 🚀 Getting Started
 
-1. **Navigate to your git repository**:
+1. **Set API Tokens as Environment Variables**:
+
+   ```bash
+   # Ensure you have your AI interface and GitHub/GitLab API tokens set:
+   export HUGGINGFACE_API_TOKEN='your_hf_api_token'    # If you want to use Hugging Face's API
+   export GITHUB_TOKEN='your_github_token'             # If using GitHub
+   export GITLAB_TOKEN='your_gitlab_token'             # If using GitLab
+   ```
+
+Supported interfaces:
+
+- Groq (GROQ_API_KEY)
+- Hugging Face (HUGGINGFACE_API_TOKEN)
+- Gemini (GOOGLE_API_KEY)
+- Ollama (OLLAMA_API_KEY)
+
+
+2. **Navigate to your git repository**:
 
    ```bash
    cd /path/to/your/git/repo
    ```
 
-2. **Set API Tokens as Environment Variables**:
-
-   ```bash
-   # Ensure you have your AI interface and GitHub/GitLab API tokens set:
-   export GROQ_API_KEY='your_groq_api_key'             # If you want to use Groq's API
-   export HUGGINGFACE_API_TOKEN='your_hf_api_token'    # If you want to use Hugging Face's API
-   export GITHUB_TOKEN='your_github_token'             # If using GitHub
-   export GITLAB_TOKEN='your_gitlab_token'             # If using GitLab
    ```
 3. **Start Using gai-tool**:
 
@@ -50,6 +59,14 @@ pip install gai-tool
 ## ⚙️ Configuration
 
 Configuration file is located at `~/.config/gai/config.yaml`. Customize settings like the AI interface, temperature, and target branch.
+
+You can also initialize a local configuration file in your project directory:
+
+```bash
+gai init
+```
+
+This will create a `.gai.yaml` file in your current directory with your current settings. Local configuration takes precedence over global configuration.
 
 Example configuration:
 
