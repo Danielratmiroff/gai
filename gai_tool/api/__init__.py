@@ -4,3 +4,6 @@ from .github_api import Github_api
 from .hugging_client import HuggingClient
 from .ollama_client import OllamaClient
 from .token_counter import TokenCounter
+from .gemini_client import GeminiClient
+
+__all__ = ["Github_api", "Gitlab_api", "GroqClient", "HuggingClient", "OllamaClient", "TokenCounter", "GeminiClient"]

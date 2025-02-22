@@ -1,13 +1,11 @@
-from gai_tool.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS
-from gai_tool.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient
-import os
-import yaml
-import subprocess
-from dataclasses import dataclass
+from gai_tool.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS, GEMINI_MODELS
+from gai_tool.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient, GeminiClient
+from gai_tool.src.utils import create_system_message, create_user_message
 import argparse
 import logging
 
-from gai_tool.src.utils import create_system_message, create_user_message
+
+# Suppress transformers logging as we don't need it
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
@@ -111,9 +109,6 @@ class Main:
                     temperature=self.temperature,
                     max_tokens=model.max_tokens
                 )
-                # Set as default if not already set
-                if self.ConfigManager.get_config('interface') != 'huggingface':
-                    self.ConfigManager.update_config('interface', 'huggingface')
 
             case "groq":
                 model = GROQ_MODELS[0]
@@ -123,9 +118,15 @@ class Main:
                     temperature=self.temperature,
                     max_tokens=model.max_tokens
                 )
-                # Set as default if not already set
-                if self.ConfigManager.get_config('interface') != 'groq':
-                    self.ConfigManager.update_config('interface', 'groq')
+
+            case "google":
+                model = GEMINI_MODELS[0]
+
+                client = GeminiClient(
+                    model=model.model_name,
+                    temperature=self.temperature,
+                    max_output_tokens=model.max_tokens
+                )
 
             # Default to ollama
             case _:
@@ -136,9 +137,10 @@ class Main:
                     temperature=self.temperature,
                     max_tokens=model.max_tokens
                 )
-                # Set as default if not already set
-                if self.ConfigManager.get_config('interface') != 'ollama':
-                    self.ConfigManager.update_config('interface', 'ollama')
+
+        # Set as default if not already set
+        if self.ConfigManager.get_config('interface') != self.interface:
+            self.ConfigManager.update_config('interface', self.interface)
 
         return client.get_chat_completion
 

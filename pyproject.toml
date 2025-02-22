@@ -26,6 +26,7 @@ langchain-ollama = "^0.2.3"
 langchain-community = "^0.3.18"
 langchain-core = "^0.3.37"
 transformers = "^4.49.0"
+langchain-google-genai = "^2.0.10"
 
 
 [tool.poetry.group.dev.dependencies]
