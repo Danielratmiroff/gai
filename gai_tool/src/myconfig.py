@@ -85,6 +85,11 @@ class ConfigManager:
         app_author: str = None,
         config_filename: str = "config.yaml"
     ):
+
+        # Local config path
+        self.local_config_path = Path.cwd() / ".gai.yaml"
+
+        # Global config path
         self.config_dir = Path(user_config_dir(app_name, app_author))
         self.config_dir.mkdir(parents=True, exist_ok=True)
 
@@ -93,6 +98,14 @@ class ConfigManager:
         self.config = self.load_config()
 
     def load_config(self):
+        # Try to load local config first
+        if self.local_config_path.exists():
+            with self.local_config_path.open('r') as f:
+                local_config = yaml.safe_load(f)
+                if local_config is not None:
+                    return local_config
+
+        # Fall back to global config
         if not self.config_path.exists():
             self.create_default_config()
 
@@ -107,9 +120,10 @@ class ConfigManager:
         print(f"Created default config at {self.config_path}")
 
     def save_config(self):
-        with self.config_path.open('w') as f:
+        config_path = self.local_config_path if self.local_config_path.exists() else self.config_path
+        with config_path.open('w') as f:
             yaml.dump(self.config, f)
-        print(f"Saved config to {self.config_path}")
+        print(f"Saved config to {config_path}")
 
     def update_config(self, key, value):
         self.config[key] = value
@@ -117,6 +131,18 @@ class ConfigManager:
 
     def get_config(self, key, default=None):
         return self.config.get(key, default)
+
+    def init_local_config(self):
+        """Initialize a local configuration file in the current directory."""
+        if self.local_config_path.exists():
+            print(f"Local config already exists at {self.local_config_path}")
+            return False
+
+        # Create local config with current settings
+        with self.local_config_path.open('w') as f:
+            yaml.dump(self.config, f)
+        print(f"Created local config at {self.local_config_path}")
+        return True
 
 
 def get_app_name():

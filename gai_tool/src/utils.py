@@ -93,8 +93,8 @@ def validate_messages(messages: List[Dict[str, str]]) -> bool:
 
 
 def get_api_huggingface_key() -> str:
-    api_key = os.environ.get("HUGGING_FACE_TOKEN")
+    api_key = os.environ.get("HUGGINGFACE_API_TOKEN")
     if api_key is None:
         raise ValueError(
-            "HUGGING_FACE_TOKEN is not set, please set it in your environment variables")
+            "HUGGINGFACE_API_TOKEN is not set, please set it in your environment variables")
     return api_key

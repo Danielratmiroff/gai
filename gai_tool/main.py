@@ -40,8 +40,10 @@ class Main:
             self.do_merge_request()
         elif self.args.command == 'commit':
             self.do_commit()
+        elif self.args.command == 'init':
+            self.ConfigManager.init_local_config()
         else:
-            print("Please specify a command: merge or commit")
+            print("Please specify a command: init, merge, or commit")
 
     def load_config(self):
         # AI model arguments
@@ -63,6 +65,10 @@ class Main:
         # Helper text
         subparsers = parser.add_subparsers(dest='command',
                                            help='Available commands')
+
+        # Init config
+        init_parser = subparsers.add_parser('init',
+                                            help='Initialize a local configuration file')
 
         # Merge request
         merge_parser = subparsers.add_parser('merge',
