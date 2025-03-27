@@ -206,6 +206,7 @@ def test_create_merge_request_existing_mr_not_found(mock_requests_get, mock_requ
     gitlab_api.repo_name = "repo"
     gitlab_api.target_branch = "main"
     gitlab_api.assignee_id = 12345
+    gitlab_api.iid = 1
     gitlab_api.get_current_branch = MagicMock(return_value="feature-branch")
     gitlab_api.get_api_key = MagicMock(return_value="test_gitlab_token")
 
@@ -216,7 +217,8 @@ def test_create_merge_request_existing_mr_not_found(mock_requests_get, mock_requ
     mock_response_post = Mock()
     mock_response_post.status_code = 201
     mock_response_post.json.return_value = {
-        'id': 1, 'url': 'https://gitlab.com/owner/repo/-/merge_requests'}
+        'id': 1, 'iid': 1, 'url': 'https://gitlab.com/owner/repo/-/merge_requests', 'state': 'opened'
+    }
     mock_requests_post.return_value = mock_response_post
 
     # Act
@@ -232,10 +234,12 @@ def test_create_merge_request_existing_mr_not_found(mock_requests_get, mock_requ
             "target_branch": gitlab_api.target_branch,
             "title": "Title",
             "description": "description",
-            "assignee_id": gitlab_api.assignee_id
+            "assignee_id": gitlab_api.assignee_id,
+            "remove_source_branch": True,
+            "squash": True
         }
     )
-    mock_print.assert_any_call("Merge request created successfully.")
+    mock_print.assert_any_call("Merge request created successfully with internal ID: 1")
 
 
 def test_create_merge_request_existing_mr(mock_requests_get, mock_requests_put, mock_merge_requests, mock_subprocess_run_success):
@@ -250,19 +254,21 @@ def test_create_merge_request_existing_mr(mock_requests_get, mock_requests_put, 
     gitlab_api.assignee_id = 12345
     gitlab_api.get_current_branch = MagicMock(return_value="feature-branch")
     gitlab_api.get_api_key = MagicMock(return_value="test_gitlab_token")
-
+    gitlab_api.iid = 1
     # Response indicating existing PR
     mock_response_get = Mock()
-    mock_response_get.status_code = 201
+    mock_response_get.status_code = 200
     mock_response_get.json.return_value = [{
         'iid': 1,
-        'web_url': 'https://gitlab.com/owner/repo/-/merge_requests/1'
+        'web_url': 'https://gitlab.com/owner/repo/-/merge_requests/1',
+        'state': 'opened'
     }]
     mock_requests_get.return_value = mock_response_get
 
     # Response indicating successful update
     mock_response_put = Mock()
-    mock_response_put.status_code = 201
+    mock_response_put.status_code = 200
+    mock_response_put.json.return_value = {'iid': 1}
     mock_requests_put.return_value = mock_response_put
 
     # Act
@@ -275,10 +281,15 @@ def test_create_merge_request_existing_mr(mock_requests_get, mock_requests_put, 
     mock_requests_put.assert_called_once_with(
         f"{gitlab_api.get_api_url()}/{1}",
         headers={"PRIVATE-TOKEN": "test_gitlab_token"},
-        json={"title": "Title", "description": "Updated description"}
+        json={
+            "title": "Title",
+            "description": "Updated description",
+            "remove_source_branch": True,
+            "squash": True
+        }
     )
     mock_print.assert_any_call("A merge request already exists: https://gitlab.com/owner/repo/-/merge_requests/1")
-    mock_print.assert_any_call("Merge request updated successfully.")
+    mock_print.assert_any_call("Merge request updated successfully with internal ID: 1")
 
 
 def test_update_merge_request_failure(mock_requests_get, mock_requests_put):

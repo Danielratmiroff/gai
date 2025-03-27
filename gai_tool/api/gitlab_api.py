@@ -51,9 +51,12 @@ class Gitlab_api():
             }
         )
 
-        if response.status_code == 201:
-            mrs = response.json()
-            return mrs[0] if mrs else None
+        response_json = response.json()
+        mr = response_json[0]
+        state = mr['state']  
+
+        if state == 'opened':
+            return mr
         return None
 
     def update_merge_request(self, mr_id: int, title: str, description: str) -> None:
@@ -64,7 +67,9 @@ class Gitlab_api():
 
         data = {
             "title": title,
-            "description": description
+            "description": description,
+            "remove_source_branch": True,
+            "squash": True
         }
 
         response = requests.put(
@@ -73,8 +78,10 @@ class Gitlab_api():
             json=data
         )
 
-        if response.status_code == 201:
-            print("Merge request updated successfully.")
+        if response.status_code in [200, 201]:
+            response_json = response.json()
+            internal_id = response_json['iid']
+            print(f"Merge request updated successfully with internal ID: {internal_id}")
         else:
             print(f"Failed to update merge request: {response.status_code}")
             print(f"Response text: {response.text}")
@@ -99,7 +106,9 @@ class Gitlab_api():
                 "target_branch": self.target_branch,
                 "title": title,
                 "description": description,
-                "assignee_id": self.assignee_id
+                "assignee_id": self.assignee_id,
+                "remove_source_branch": True,
+                "squash": True
             }
 
             response = requests.post(
@@ -109,7 +118,9 @@ class Gitlab_api():
             )
 
             if response.status_code == 201:
-                print("Merge request created successfully.")
+                response_json = response.json()
+                internal_id = response_json['iid']
+                print(f"Merge request created successfully with internal ID: {internal_id}")
             else:
                 print(f"Failed to create merge request: {response.status_code}")
                 print(f"Response text: {response.text}")

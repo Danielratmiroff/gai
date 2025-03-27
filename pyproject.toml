@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gai-tool"
-version = "0.3.0"
+version = "0.3.1"
 description = "AI-Powered Automation Tool for Git 🚀"
 authors = ["Daniel Ratmiroff <danielratmiroff@pm.me>"]
 readme = "README.md"
