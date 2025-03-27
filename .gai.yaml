@@ -1,6 +1,8 @@
+assignee_id: 12345
 gitlab_assignee_id: 10437754
 interface: google
 max_tokens: 8000
 model: llama-3.1-8b-instant
+new_key: new_value
 target_branch: master
-temperature: 0.7
+temperature: 0.5
