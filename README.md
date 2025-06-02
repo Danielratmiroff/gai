@@ -47,7 +47,6 @@ Supported interfaces:
    cd /path/to/your/git/repo
    ```
 
-   ```
 3. **Start Using gai-tool**:
 
    ```bash
@@ -122,7 +121,7 @@ Options:
 # Simply
 gai merge -p
 # Or
-gai merge origin -p -tb develop -i groq
+gai merge origin --push --target-branch develop -interface groq
 ```
 
 ## 🛠 Build Instructions
