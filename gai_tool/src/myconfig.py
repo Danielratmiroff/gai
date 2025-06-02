@@ -76,7 +76,7 @@ DEFAULT_CONFIG = {
     'temperature': 1,
     'target_branch': 'master',
     'assignee_id': 10437754,
-    'model': HUGGING_FACE_MODELS[0].model_name,
+    # 'model': HUGGING_FACE_MODELS[0].model_name,
 }
 
 
