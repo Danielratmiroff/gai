@@ -229,7 +229,6 @@ class Main:
         git_diffs = self.Commits.get_diffs()
 
         system_prompt = self.Prompt.build_commit_message_system_prompt()
-        print(f"system_prompt: {system_prompt}")
 
         try:
             selected_commit = self.DisplayChoices.render_choices_with_try_again(

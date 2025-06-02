@@ -13,6 +13,7 @@ from gai_tool.src.utils import create_user_message, create_system_message
 class OPTIONS(Enum):
     START = "start"
     TRY_AGAIN = "> Try again"
+    ENTER_A_SUGGESTION = "> Enter a suggestion"
     EXIT = "> Exit"
 
 
@@ -49,7 +50,7 @@ class DisplayChoices:
             raise ValueError(f"\n\nFailed to parse response into list. Error: {str(e)}") from e
 
     def display_choices(self, items: list, title="Please select an option:"):
-        items_refined = items + [OPTIONS.TRY_AGAIN.value, OPTIONS.EXIT.value]
+        items_refined = items + [OPTIONS.ENTER_A_SUGGESTION.value, OPTIONS.TRY_AGAIN.value,  OPTIONS.EXIT.value]
 
         option, _ = pick(items_refined,
                          title,
@@ -77,10 +78,20 @@ class DisplayChoices:
 
         choice = self.run(response)
 
-        while choice == OPTIONS.TRY_AGAIN.value:
-            try_again_prompt = Prompts().build_try_again_prompt()
-            messages.append(create_system_message(response))
-            messages.append(create_user_message(try_again_prompt))
+        while choice == OPTIONS.TRY_AGAIN.value or choice == OPTIONS.ENTER_A_SUGGESTION.value:
+            if choice == OPTIONS.TRY_AGAIN.value:
+                try_again_prompt = Prompts().build_try_again_prompt()
+                messages.append(create_system_message(response))
+                messages.append(create_user_message(try_again_prompt))
+            elif choice == OPTIONS.ENTER_A_SUGGESTION.value:
+                enter_a_suggestion_prompt = Prompts().build_enter_a_suggestion_prompt()
+
+                # Ask the user for a suggestion
+                suggestion = input("\nPlease enter your suggestion: ")
+                suggestion_prompt_with_user_suggestion = f"{enter_a_suggestion_prompt}\nUser suggestion: {suggestion}"
+
+                messages.append(create_system_message(response))
+                messages.append(create_user_message(suggestion_prompt_with_user_suggestion))
 
             response = ai_client(
                 user_message=messages.copy(),
