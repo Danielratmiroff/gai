@@ -13,7 +13,6 @@ command-line application that automates git commit messages and merge requests u
 -  Generate commit messages based on code diffs.
 -  Create merge requests with AI-generated titles and descriptions.
 -  Works with both GitHub and GitLab.
--  Supports Groq and Hugging Face AI interfaces.
 
 ## 📦 Installation
 
