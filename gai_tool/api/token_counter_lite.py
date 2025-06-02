@@ -1,44 +1,58 @@
 from gai_tool.src.utils import get_api_huggingface_key
-from transformers import AutoTokenizer
+from tokenizers import Tokenizer
+from huggingface_hub import hf_hub_download
 from typing import List, Dict, Optional
 import logging
-import warnings
 import os
 
-# Disable all warnings
-warnings.filterwarnings('ignore')
-
-# Disable specific transformers warnings
-os.environ['TRANSFORMERS_NO_ADVISORY_WARNINGS'] = 'true'
-
-# Set logging level to ERROR
-logging.getLogger("transformers").setLevel(logging.ERROR)
+# Set logging level to reduce noise
+logging.getLogger("tokenizers").setLevel(logging.ERROR)
 
 
-# Token counter only supports Huggingface models for now
-# TODO: Add support for GROQ models
-class TokenCounter:
-    def __init__(self,
-                 model: str
-                 ):
+class TokenCounterLite:
+    """
+    Lightweight token counter using the standalone tokenizers library.
+    This avoids the PyTorch/TensorFlow warning from transformers.
+    """
+
+    def __init__(self, model: str):
         """
-        Initialize token counter with specified model using transformers tokenizer.
+        Initialize token counter with specified model using tokenizers library.
 
         Parameters:
         - model: The name or path of the model.
         """
         self.tokens_per_message = 3  # Every message follows {role/name, content}
+        self.model = model
+        self.tokenizer = self._load_tokenizer()
 
-        # Attempt to load token from environment variable
-        hf_token = get_api_huggingface_key()
-        if hf_token:
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                model,
-                token=hf_token
+    def _load_tokenizer(self) -> Tokenizer:
+        """Load tokenizer from HuggingFace Hub."""
+        try:
+            # Attempt to load token from environment variable
+            hf_token = get_api_huggingface_key()
+
+            # Download tokenizer.json file
+            tokenizer_path = hf_hub_download(
+                repo_id=self.model,
+                filename="tokenizer.json",
+                token=hf_token if hf_token else None
             )
-        else:
-            # Attempt to load without authentication
-            self.tokenizer = AutoTokenizer.from_pretrained(model)
+
+            # Load tokenizer from file
+            return Tokenizer.from_file(tokenizer_path)
+
+        except Exception as e:
+            # Fallback: try without authentication
+            try:
+                tokenizer_path = hf_hub_download(
+                    repo_id=self.model,
+                    filename="tokenizer.json"
+                )
+                return Tokenizer.from_file(tokenizer_path)
+            except Exception as fallback_e:
+                raise ValueError(
+                    f"Failed to load tokenizer for {self.model}: {str(e)} | Fallback error: {str(fallback_e)}")
 
     def count_message_tokens(self, message: Dict[str, str]) -> int:
         """
@@ -47,8 +61,8 @@ class TokenCounter:
         num_tokens = self.tokens_per_message
         for _, value in message.items():
             value_str = str(value)
-            tokens = self.tokenizer.encode(value_str, add_special_tokens=False)
-            num_tokens += len(tokens)
+            encoding = self.tokenizer.encode(value_str, add_special_tokens=False)
+            num_tokens += len(encoding.ids)
         return num_tokens
 
     def count_tokens(self, messages: List[Dict[str, str]]) -> int:
