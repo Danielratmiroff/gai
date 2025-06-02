@@ -23,8 +23,9 @@ class Main:
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
 
-        self.Gitlab = Gitlab_api()
-        self.Github = Github_api()
+        # Remove eager initialization of API clients
+        # self.Gitlab = Gitlab_api()
+        # self.Github = Github_api()
 
         # Version
         if attr_is_defined(self.args, 'version') and self.args.version is True:
@@ -199,14 +200,28 @@ class Main:
 
         match platform:
             case "gitlab":
-                self.Gitlab.create_merge_request(
-                    title=selected_title,
-                    description=mr_description)
+                # Lazy initialization of GitLab API client
+                try:
+                    gitlab_client = Gitlab_api()
+                    gitlab_client.create_merge_request(
+                        title=selected_title,
+                        description=mr_description)
+                except Exception as e:
+                    print(f"Failed to create GitLab merge request: {e}")
+                    print("Please check your GITLAB_PRIVATE_TOKEN and project access.")
+                    return
 
             case "github":
-                self.Github.create_pull_request(
-                    title=selected_title,
-                    body=mr_description)
+                # Lazy initialization of GitHub API client
+                try:
+                    github_client = Github_api()
+                    github_client.create_pull_request(
+                        title=selected_title,
+                        body=mr_description)
+                except Exception as e:
+                    print(f"Failed to create GitHub pull request: {e}")
+                    print("Please check your GitHub token and repository access.")
+                    return
             case _:
                 raise ValueError(
                     "Platform not supported. Only github and gitlab are supported.")
