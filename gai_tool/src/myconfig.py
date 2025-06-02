@@ -26,7 +26,7 @@ GROQ_MODELS: List[Models] = [
 
 HUGGING_FACE_MODELS: List[Models] = [
     Models(
-        model_name="Qwen/Qwen2.5-72B-Instruct",
+        model_name="Qwen/Qwen3-32B",
         max_tokens=32760
     ),
     # Models(
