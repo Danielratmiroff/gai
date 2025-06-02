@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gai-tool"
-version = "0.3.1"
+version = "0.4.0"
 description = "AI-Powered Automation Tool for Git 🚀"
 authors = ["Daniel Ratmiroff <danielratmiroff@pm.me>"]
 readme = "README.md"
@@ -25,8 +25,10 @@ ollama = "^0.4.7"
 langchain-ollama = "^0.2.3"
 langchain-community = "^0.3.18"
 langchain-core = "^0.3.37"
-transformers = "^4.49.0"
+tokenizers = "^0.21.0"
 langchain-google-genai = "^2.0.10"
+python-gitlab = "^5.6.0"
+pygithub = "^2.6.1"
 
 
 [tool.poetry.group.dev.dependencies]

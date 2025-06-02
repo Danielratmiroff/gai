@@ -1,7 +1,7 @@
 import os
-import requests
-import yaml
+import gitlab
 import subprocess
+from typing import Optional, Dict, Any
 
 from gai_tool.src import Merge_requests, ConfigManager, get_app_name
 
@@ -10,19 +10,35 @@ class Gitlab_api():
     def __init__(self):
         self.load_config()
         self.Merge_requests = Merge_requests().get_instance()
+        self.gl = self._initialize_gitlab_client()
+        self.project = self._get_project()
 
     def load_config(self):
         config_manager = ConfigManager(get_app_name())
         self.target_branch = config_manager.get_config('target_branch')
         self.assignee_id = config_manager.get_config('assignee_id')
 
-    def get_api_url(self) -> str:
+    def _initialize_gitlab_client(self) -> gitlab.Gitlab:
+        """Initialize the GitLab client with authentication."""
+        api_key = self.get_api_key()
         gitlab_domain = self.Merge_requests.get_remote_url()
+        gitlab_url = f"https://{gitlab_domain}"
+
+        return gitlab.Gitlab(gitlab_url, private_token=api_key)
+
+    def _get_project(self):
+        """Get the GitLab project object."""
         repo_owner = self.Merge_requests.get_repo_owner_from_remote_url()
         repo_name = self.Merge_requests.get_repo_from_remote_url()
-        return f"https://{gitlab_domain}/api/v4/projects/{repo_owner}%2F{repo_name}/merge_requests"
+        project_path = f"{repo_owner}/{repo_name}"
 
-    def get_api_key(self):
+        try:
+            return self.gl.projects.get(project_path)
+        except gitlab.exceptions.GitlabGetError as e:
+            raise ValueError(f"Failed to get project {project_path}: {e}")
+
+    def get_api_key(self) -> str:
+        """Get the GitLab API key from environment variables."""
         api_key = os.environ.get("GITLAB_PRIVATE_TOKEN")
 
         if api_key is None:
@@ -32,95 +48,108 @@ class Gitlab_api():
         return api_key
 
     def get_current_branch(self) -> str:
+        """Get the current Git branch name."""
         result = subprocess.run(
             ["git", "rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
         return result.stdout.strip()
 
-    def get_existing_merge_request(self, source_branch: str) -> dict:
+    def get_existing_merge_request(self, source_branch: str) -> Optional[Dict[str, Any]]:
         """
         Get existing merge request for the current branch.
+
+        Args:
+            source_branch: The source branch name
+
+        Returns:
+            Dict containing merge request data if found, None otherwise
         """
-        api_key = self.get_api_key()
+        try:
+            # Get merge requests filtered by source branch and state
+            merge_requests = self.project.mergerequests.list(
+                source_branch=source_branch,
+                state='opened',
+                all=True
+            )
 
-        response = requests.get(
-            f"{self.get_api_url()}",
-            headers={"PRIVATE-TOKEN": api_key},
-            params={
-                "source_branch": source_branch,
-                "state": "opened"
-            }
-        )
+            if merge_requests:
+                # Return the first open merge request as a dict
+                mr = merge_requests[0]
+                return mr._attrs
 
-        response_json = response.json()
-        mr = response_json[0]
-        state = mr['state']  
+            return None
 
-        if state == 'opened':
-            return mr
-        return None
+        except gitlab.exceptions.GitlabError as e:
+            print(f"Error fetching merge requests: {e}")
+            return None
 
-    def update_merge_request(self, mr_id: int, title: str, description: str) -> None:
+    def update_merge_request(self, mr_iid: int, title: str, description: str) -> None:
         """
         Update an existing merge request.
+
+        Args:
+            mr_iid: The internal ID of the merge request
+            title: New title for the merge request
+            description: New description for the merge request
         """
-        api_key = self.get_api_key()
+        try:
+            # Get the merge request by internal ID
+            mr = self.project.mergerequests.get(mr_iid)
 
-        data = {
-            "title": title,
-            "description": description,
-            "remove_source_branch": True,
-            "squash": True
-        }
+            # Update the merge request
+            mr.title = title
+            mr.description = description
+            mr.remove_source_branch = True
+            mr.squash = True
 
-        response = requests.put(
-            f"{self.get_api_url()}/{mr_id}",
-            headers={"PRIVATE-TOKEN": api_key},
-            json=data
-        )
+            mr.save()
 
-        if response.status_code in [200, 201]:
-            response_json = response.json()
-            internal_id = response_json['iid']
-            print(f"Merge request updated successfully with internal ID: {internal_id}")
-        else:
-            print(f"Failed to update merge request: {response.status_code}")
-            print(f"Response text: {response.text}")
+            print(f"Merge request updated successfully with internal ID: {mr_iid}")
 
-    def create_merge_request(self, title: str, description: str) -> None:
-        api_key = self.get_api_key()
+        except gitlab.exceptions.GitlabError as e:
+            print(f"Failed to update merge request: {e}")
+
+    def create_merge_request(self, title: str, description: str, target_branch: str = None) -> None:
+        """
+        Create a new merge request or update existing one.
+
+        Args:
+            title: Title for the merge request
+            description: Description for the merge request
+            target_branch: Target branch for the merge request (overrides config if provided)
+        """
         source_branch = self.get_current_branch()
-
         existing_mr = self.get_existing_merge_request(source_branch)
+
+        # Use provided target_branch or fall back to config
+        target_branch_to_use = target_branch if target_branch is not None else self.target_branch
 
         if existing_mr:
             print(f"A merge request already exists: {existing_mr['web_url']}")
             self.update_merge_request(
-                mr_id=existing_mr['iid'],
+                mr_iid=existing_mr['iid'],
                 title=title,
                 description=description
             )
-
         else:
-            data = {
-                "source_branch": source_branch,
-                "target_branch": self.target_branch,
-                "title": title,
-                "description": description,
-                "assignee_id": self.assignee_id,
-                "remove_source_branch": True,
-                "squash": True
-            }
+            try:
+                # Create new merge request
+                mr_data = {
+                    "source_branch": source_branch,
+                    "target_branch": target_branch_to_use,
+                    "title": title,
+                    "description": description,
+                    "remove_source_branch": True,
+                    "squash": True
+                }
 
-            response = requests.post(
-                f"{self.get_api_url()}",
-                headers={"PRIVATE-TOKEN": api_key},
-                json=data
-            )
+                # Add assignee if configured
+                if self.assignee_id:
+                    mr_data["assignee_id"] = self.assignee_id
 
-            if response.status_code == 201:
-                response_json = response.json()
-                internal_id = response_json['iid']
-                print(f"Merge request created successfully with internal ID: {internal_id}")
-            else:
-                print(f"Failed to create merge request: {response.status_code}")
-                print(f"Response text: {response.text}")
+                mr = self.project.mergerequests.create(mr_data)
+
+                print(f"Merge request created successfully with internal ID: {mr.iid}")
+                print(f"URL: {mr.web_url}")
+
+            except gitlab.exceptions.GitlabCreateError as e:
+                print(f"Failed to create merge request: {e}")

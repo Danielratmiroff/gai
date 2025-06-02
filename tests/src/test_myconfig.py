@@ -105,7 +105,7 @@ def test_display_choices_success(display_choices_instance, mock_pick_success):
     assert selected_option == 'Option 1', "Should return the selected option"
 
     mock_pick_success.assert_called_once_with(
-        ['Option 1', 'Option 2', OPTIONS.TRY_AGAIN.value, OPTIONS.EXIT.value],
+        ['Option 1', 'Option 2', OPTIONS.ENTER_A_SUGGESTION.value, OPTIONS.TRY_AGAIN.value, OPTIONS.EXIT.value],
         "Select an option:",
         indicator='*',
         multiselect=False,

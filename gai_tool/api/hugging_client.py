@@ -1,10 +1,9 @@
-
 import os
 from typing import Dict, List
 from huggingface_hub import InferenceClient
 
 from gai_tool.src import print_tokens
-from gai_tool.api.token_counter import TokenCounter
+from gai_tool.api.token_counter_lite import TokenCounterLite
 from gai_tool.src.utils import get_api_huggingface_key, validate_messages
 
 
@@ -21,7 +20,7 @@ class HuggingClient:
         self.temperature = temperature
         self.max_tokens = max_tokens
 
-        self.TokenCounter = TokenCounter(
+        self.TokenCounter = TokenCounterLite(
             model=self.model,
         )
 
