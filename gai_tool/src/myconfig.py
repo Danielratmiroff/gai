@@ -12,14 +12,6 @@ class Models:
     max_tokens: int
 
 
-DEFAULT_CONFIG = {
-    'interface': 'huggingface',
-    # 'max_tokens': 32760,
-    'temperature': 1,
-    'target_branch': 'master',
-    'assignee_id': 10437754,
-}
-
 GROQ_MODELS: List[Models] = [
     Models(
         model_name="llama-3.3-70b-versatile",
@@ -76,6 +68,16 @@ GEMINI_MODELS: List[Models] = [
         max_tokens=8000
     )
 ]
+
+
+DEFAULT_CONFIG = {
+    'interface': 'huggingface',
+    # 'max_tokens': 32760,
+    'temperature': 1,
+    'target_branch': 'master',
+    'assignee_id': 10437754,
+    'model': HUGGING_FACE_MODELS[0].model_name,
+}
 
 
 class ConfigManager:

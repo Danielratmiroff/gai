@@ -47,8 +47,11 @@ class Github_api():
         )
         return result.stdout.strip()
 
-    def create_pull_request(self, title: str, body: str) -> None:
+    def create_pull_request(self, title: str, body: str, target_branch: str = None) -> None:
         source_branch = self.get_current_branch()
+
+        # Use provided target_branch or fall back to config
+        target_branch_to_use = target_branch if target_branch is not None else self.target_branch
 
         try:
             existing_pr = self.get_existing_pr()
@@ -65,7 +68,7 @@ class Github_api():
                     title=title,
                     body=body,
                     head=source_branch,
-                    base=self.target_branch
+                    base=target_branch_to_use
                 )
 
                 print("Pull request created successfully.")

@@ -108,16 +108,20 @@ class Gitlab_api():
         except gitlab.exceptions.GitlabError as e:
             print(f"Failed to update merge request: {e}")
 
-    def create_merge_request(self, title: str, description: str) -> None:
+    def create_merge_request(self, title: str, description: str, target_branch: str = None) -> None:
         """
         Create a new merge request or update existing one.
 
         Args:
             title: Title for the merge request
             description: Description for the merge request
+            target_branch: Target branch for the merge request (overrides config if provided)
         """
         source_branch = self.get_current_branch()
         existing_mr = self.get_existing_merge_request(source_branch)
+
+        # Use provided target_branch or fall back to config
+        target_branch_to_use = target_branch if target_branch is not None else self.target_branch
 
         if existing_mr:
             print(f"A merge request already exists: {existing_mr['web_url']}")
@@ -131,7 +135,7 @@ class Gitlab_api():
                 # Create new merge request
                 mr_data = {
                     "source_branch": source_branch,
-                    "target_branch": self.target_branch,
+                    "target_branch": target_branch_to_use,
                     "title": title,
                     "description": description,
                     "remove_source_branch": True,

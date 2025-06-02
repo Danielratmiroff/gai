@@ -2,7 +2,7 @@ assignee_id: 12345
 gitlab_assignee_id: 10437754
 interface: huggingface
 max_tokens: 8000
-model: llama-3.1-8b-instant
+model: llama-3.2-8b-instant
 new_key: new_value
 target_branch: master
 temperature: 0.5

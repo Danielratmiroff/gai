@@ -201,7 +201,8 @@ class Main:
                     gitlab_client = Gitlab_api()
                     gitlab_client.create_merge_request(
                         title=selected_title,
-                        description=mr_description)
+                        description=mr_description,
+                        target_branch=self.target_branch)
                 except Exception as e:
                     print(f"Failed to create GitLab merge request: {e}")
                     print("Please check your GITLAB_PRIVATE_TOKEN and project access.")
@@ -213,7 +214,8 @@ class Main:
                     github_client = Github_api()
                     github_client.create_pull_request(
                         title=selected_title,
-                        body=mr_description)
+                        body=mr_description,
+                        target_branch=self.target_branch)
                 except Exception as e:
                     print(f"Failed to create GitHub pull request: {e}")
                     print("Please check your GitHub token and repository access.")
