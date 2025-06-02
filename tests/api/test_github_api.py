@@ -68,30 +68,33 @@ def mock_subprocess_run_failure():
 
 
 @pytest.fixture
-def mock_requests_post():
+def mock_github():
     """
-    Fixture to mock requests.post.
+    Fixture to mock the Github class from PyGithub.
     """
-    with patch('gai_tool.api.github_api.requests.post') as mock_post:
-        yield mock_post
+    with patch('gai_tool.api.github_api.Github') as mock_github_class:
+        yield mock_github_class
 
 
 @pytest.fixture
-def mock_requests_get():
+def mock_repo():
     """
-    Fixture to mock requests.get.
+    Fixture to mock a GitHub repository object.
     """
-    with patch('gai_tool.api.github_api.requests.get') as mock_get:
-        yield mock_get
+    mock_repo = Mock()
+    yield mock_repo
 
 
 @pytest.fixture
-def mock_requests_patch():
+def mock_pull_request():
     """
-    Fixture to mock requests.patch.
+    Fixture to mock a GitHub pull request object.
     """
-    with patch('gai_tool.api.github_api.requests.patch') as mock_patch:
-        yield mock_patch
+    mock_pr = Mock()
+    mock_pr.html_url = "https://github.com/owner/repo/pull/1"
+    mock_pr.number = 1
+    yield mock_pr
+
 
 # --------------------------
 # Helper Functions
@@ -125,6 +128,7 @@ def test_github_api_initialization(mock_merge_requests, mock_config_manager, moc
     assert github_api.repo_owner == "owner"
     assert github_api.repo_name == "repo"
     assert github_api.target_branch == "main"
+    assert github_api._github is None
 
 # --------------------------
 # load_config Method Tests
@@ -144,6 +148,43 @@ def test_load_config_success(mock_merge_requests, mock_config_manager, mock_get_
     # Assert
     assert github_api.target_branch == "develop"
 
+# --------------------------
+# GitHub Property Tests
+# --------------------------
+
+
+def test_github_property_lazy_initialization(mock_github, mock_merge_requests, mock_config_manager):
+    """
+    Test that the github property initializes the GitHub client lazily.
+    """
+    # Arrange
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+
+        # Act
+        github_client = github_api.github
+
+        # Assert
+        mock_github.assert_called_once_with("fake_token")
+        assert github_api._github is not None
+
+
+def test_repo_property(mock_github, mock_repo, mock_merge_requests, mock_config_manager):
+    """
+    Test that the repo property returns the correct repository object.
+    """
+    # Arrange
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+        github_api = Github_api()
+
+        # Act
+        repo = github_api.repo
+
+        # Assert
+        mock_github_instance.get_repo.assert_called_once_with("owner/repo")
+        assert repo == mock_repo
 
 # --------------------------
 # get_current_branch Method Tests
@@ -187,333 +228,260 @@ def test_get_current_branch_failure(mock_subprocess_run_failure, mock_merge_requ
 # --------------------------
 
 
-def test_create_pull_request_success(mock_requests_post, mock_merge_requests, mock_subprocess_run_success):
+def test_create_pull_request_success_new_pr(mock_github, mock_repo, mock_pull_request, mock_merge_requests, mock_config_manager):
     """
-    Test that create_pull_request successfully creates a pull request.
-    """
-    # Arrange
-    github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.target_branch = "main"
-    github_api.get_current_branch = Mock(return_value="feature-branch")
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    mock_response = Mock()
-    mock_response.status_code = 201
-    mock_response.json.return_value = {'html_url': 'https://github.com/owner/repo/pull/1'}
-    mock_requests_post.return_value = mock_response
-
-    # Act
-    with patch('builtins.print') as mock_print:
-        github_api.create_pull_request("Title", "Body")
-
-    # Assert
-    mock_requests_post.assert_called_once_with(
-        "https://api.github.com/repos/owner/repo/pulls",
-        headers={
-            "Authorization": "token fake_token",
-            "Accept": "application/vnd.github.v3+json"
-        },
-        json={
-            "title": "Title",
-            "head": "feature-branch",
-            "base": "main",
-            "body": "Body"
-        }
-    )
-    mock_print.assert_any_call("Pull request created successfully.")
-    mock_print.assert_any_call("Pull request URL: https://github.com/owner/repo/pull/1")
-
-
-def test_create_pull_request_existing_pr(mock_requests_post, mock_merge_requests, mock_subprocess_run_success, mock_requests_get, mock_requests_patch):
-    """
-    Test that create_pull_request handles existing pull requests appropriately.
+    Test that create_pull_request successfully creates a new pull request.
     """
     # Arrange
-    github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.target_branch = "main"
-    github_api.get_current_branch = MagicMock(return_value="feature-branch")
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    # Simulate existing PR info
-    mock_response_get = Mock()
-    mock_response_get.status_code = 200
-    mock_response_get.json.return_value = [{
-        'number': 1,
-        'html_url': 'https://github.com/owner/repo/pull/1'
-    }]
-    mock_requests_get.return_value = mock_response_get
-
-    # Simulate successful patch
-    mock_response_patch = Mock()
-    mock_response_patch.status_code = 200
-    mock_requests_patch.return_value = mock_response_patch
-
-    # Act
-    with patch('builtins.print') as mock_print:
-        github_api.create_pull_request("Title", "Updated Body")
-
-    # Assert
-    mock_requests_get.assert_called_once()
-
-    mock_requests_patch.assert_called_once_with(
-        "https://api.github.com/repos/owner/repo/pulls/1",
-        headers={
-            "Authorization": "token fake_token",
-            "Accept": "application/vnd.github.v3+json"
-        },
-        json={"title": "Title", "body": "Updated Body"}
-    )
-    mock_print.assert_any_call("A pull request already exists: https://github.com/owner/repo/pull/1")
-    mock_print.assert_any_call("Pull request updated successfully.")
-
-
-def test_create_pull_request_existing_pr_not_found(mock_requests_post, mock_merge_requests, mock_subprocess_run_success, mock_requests_get):
-    """
-    Test that create_pull_request handles existing PR not found scenario.
-    """
-    # Arrange
-    github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.target_branch = "main"
-    github_api.get_current_branch = Mock(return_value="feature-branch")
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    # Response indicating successful create
-    mock_response_post = Mock()
-    mock_response_post.status_code = 201
-    mock_response_post.json.return_value = {
-        'html_url': 'https://github.com/owner/repo/pull/1'
-    }
-    mock_requests_post.return_value = mock_response_post
-
-    # Act
-    with patch('builtins.print') as mock_print:
-        github_api.create_pull_request("Title", "Body")
-
-    # Assert
-    mock_requests_post.assert_called_once_with(
-        "https://api.github.com/repos/owner/repo/pulls",
-        headers={
-            "Authorization": "token fake_token",
-            "Accept": "application/vnd.github.v3+json"
-        },
-        json={
-            "title": "Title",
-            "head": "feature-branch",
-            "base": github_api.target_branch,
-            "body": "Body"
-        }
-    )
-    mock_print.assert_any_call("Pull request created successfully.")
-
-
-def test_create_pull_request_failure(mock_requests_post, mock_subprocess_run_success, mock_config_manager, mock_merge_requests):
-    """
-    Test that create_pull_request handles general failures.
-    """
-    github_api = Github_api()
-
-    github_api.get_current_branch = Mock(return_value="feature-branch")
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    # Simulate failed response
-    mock_response_post = Mock()
-    mock_response_post.status_code = 400
-    mock_response_post.json.return_value = {"message": "Bad Request"}
-    mock_requests_post.return_value = mock_response_post
-
-    # Act
-    with patch('builtins.print') as mock_print:
-        github_api.create_pull_request("Title", "Body")
-
-    # Assert
-    mock_requests_post.assert_called_once()
-
-    mock_print.assert_any_call("Failed to create pull request: 400")
-    mock_print.assert_any_call("Error message: {'message': 'Bad Request'}")
-
-# --------------------------
-# get_existing_pr_info Method Tests
-# --------------------------
-
-
-def test_get_existing_pr_info_success(mock_requests_get, mock_merge_requests, mock_config_manager):
-    """
-    Test that get_existing_pr_info returns existing PR info when available.
-    """
-    # Arrange
-    github_api = Github_api()
-
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.get_current_branch = Mock(return_value="feature-branch")
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = [{
-        'number': 1,
-        'html_url': 'https://github.com/owner/repo/pull/1',
-    }]
-    mock_requests_get.return_value = mock_response
-
-    # Act
-    pr_info = github_api.get_existing_pr()
-
-    # Assert
-    mock_requests_get.assert_called_once_with(
-        "https://api.github.com/repos/owner/repo/pulls",
-        headers={
-            "Authorization": "token fake_token",
-            "Accept": "application/vnd.github.v3+json"
-        },
-        params={
-            "head": "owner:feature-branch",
-            "state": "open"
-        }
-    )
-    assert pr_info == {
-        'number': 1,
-        'html_url': 'https://github.com/owner/repo/pull/1'
-    }
-
-
-def test_get_existing_pr_info_no_pr(mock_requests_get, mock_merge_requests):
-    """
-    Test that get_existing_pr_info returns None when no PRs are found.
-    """
-    # Arrange
-    github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_response.json.return_value = []
-    mock_requests_get.return_value = mock_response
-
-    # Act
-    pr_info = github_api.get_existing_pr()
-
-    # Assert
-    assert pr_info is None
-
-
-def test_get_existing_pr_info_failure(mock_requests_get, mock_merge_requests):
-    """
-    Test that get_existing_pr_info returns None on failure.
-    """
-    # Arrange
-    github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-
     with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
-        mock_response = Mock()
-        mock_response.status_code = 500
-        mock_requests_get.return_value = mock_response
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+        github_api.get_existing_pr = Mock(return_value=None)
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+        mock_repo.create_pull.return_value = mock_pull_request
 
         # Act
-        pr_info = github_api.get_existing_pr()
+        with patch('builtins.print') as mock_print:
+            github_api.create_pull_request("Test Title", "Test Body")
 
-    # Assert
-    assert pr_info is None
+        # Assert
+        mock_repo.create_pull.assert_called_once_with(
+            title="Test Title",
+            body="Test Body",
+            head="feature-branch",
+            base="main"
+        )
+        mock_print.assert_any_call("Pull request created successfully.")
+        mock_print.assert_any_call("Pull request URL: https://github.com/owner/repo/pull/1")
+
+
+def test_create_pull_request_existing_pr(mock_github, mock_repo, mock_pull_request, mock_merge_requests, mock_config_manager):
+    """
+    Test that create_pull_request updates an existing pull request.
+    """
+    # Arrange
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+        github_api.get_existing_pr = Mock(return_value=mock_pull_request)
+        github_api.update_pull_request = Mock()
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+
+        # Act
+        with patch('builtins.print') as mock_print:
+            github_api.create_pull_request("Updated Title", "Updated Body")
+
+        # Assert
+        github_api.update_pull_request.assert_called_once_with(
+            mock_pull_request,
+            title="Updated Title",
+            body="Updated Body"
+        )
+        mock_print.assert_any_call("A pull request already exists: https://github.com/owner/repo/pull/1")
+
+
+def test_create_pull_request_github_exception(mock_github, mock_repo, mock_merge_requests, mock_config_manager):
+    """
+    Test that create_pull_request handles GithubException appropriately.
+    """
+    # Arrange
+    from github import GithubException
+
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+        github_api.get_existing_pr = Mock(side_effect=GithubException(400, {"message": "Bad Request"}))
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+
+        # Act
+        with patch('builtins.print') as mock_print:
+            github_api.create_pull_request("Title", "Body")
+
+        # Assert
+        mock_print.assert_any_call("Failed to create pull request: 400")
+        mock_print.assert_any_call("Error message: {'message': 'Bad Request'}")
+
+
+def test_create_pull_request_general_exception(mock_github, mock_repo, mock_merge_requests, mock_config_manager):
+    """
+    Test that create_pull_request handles general exceptions appropriately.
+    """
+    # Arrange
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+        github_api.get_existing_pr = Mock(side_effect=Exception("Unexpected error"))
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+
+        # Act
+        with patch('builtins.print') as mock_print:
+            github_api.create_pull_request("Title", "Body")
+
+        # Assert
+        mock_print.assert_any_call("Unexpected error: Unexpected error")
+
+# --------------------------
+# get_existing_pr Method Tests
+# --------------------------
+
+
+def test_get_existing_pr_success(mock_github, mock_repo, mock_pull_request, mock_merge_requests, mock_config_manager):
+    """
+    Test that get_existing_pr returns existing PR when available.
+    """
+    # Arrange
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+        mock_repo.get_pulls.return_value = [mock_pull_request]
+
+        # Act
+        result = github_api.get_existing_pr()
+
+        # Assert
+        mock_repo.get_pulls.assert_called_once_with(
+            state='open',
+            head='owner:feature-branch'
+        )
+        assert result == mock_pull_request
+
+
+def test_get_existing_pr_no_pr(mock_github, mock_repo, mock_merge_requests, mock_config_manager):
+    """
+    Test that get_existing_pr returns None when no PRs are found.
+    """
+    # Arrange
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+        mock_repo.get_pulls.return_value = []
+
+        # Act
+        result = github_api.get_existing_pr()
+
+        # Assert
+        assert result is None
+
+
+def test_get_existing_pr_github_exception(mock_github, mock_repo, mock_merge_requests, mock_config_manager):
+    """
+    Test that get_existing_pr handles GithubException appropriately.
+    """
+    # Arrange
+    from github import GithubException
+
+    with patch.dict(os.environ, {"GITHUB_TOKEN": "fake_token"}):
+        github_api = Github_api()
+        github_api.get_current_branch = Mock(return_value="feature-branch")
+
+        mock_github_instance = mock_github.return_value
+        mock_github_instance.get_repo.return_value = mock_repo
+        mock_repo.get_pulls.side_effect = GithubException(500, {"message": "Server Error"})
+
+        # Act
+        with patch('builtins.print') as mock_print:
+            result = github_api.get_existing_pr()
+
+        # Assert
+        mock_print.assert_any_call("Error fetching pull requests: 500")
+        mock_print.assert_any_call("Error message: {'message': 'Server Error'}")
+        assert result is None
 
 # --------------------------
 # update_pull_request Method Tests
 # --------------------------
 
 
-def test_update_pull_request_success(mock_requests_patch, mock_merge_requests):
+def test_update_pull_request_success(mock_pull_request, mock_merge_requests, mock_config_manager):
     """
     Test that update_pull_request successfully updates the pull request.
     """
     # Arrange
     github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.get_api_key = MagicMock(return_value="fake_token")
-
-    mock_response = Mock()
-    mock_response.status_code = 200
-    mock_requests_patch.return_value = mock_response
 
     # Act
     with patch('builtins.print') as mock_print:
-        github_api.update_pull_request(pr_number=1, title="Updated Title", body="Updated Body")
+        github_api.update_pull_request(mock_pull_request, "Updated Title", "Updated Body")
 
     # Assert
-    mock_requests_patch.assert_called_once_with(
-        "https://api.github.com/repos/owner/repo/pulls/1",
-        headers={
-            "Authorization": "token fake_token",
-            "Accept": "application/vnd.github.v3+json"
-        },
-        json={
-            "title": "Updated Title",
-            "body": "Updated Body"
-        }
-    )
+    mock_pull_request.edit.assert_called_once_with(title="Updated Title", body="Updated Body")
     mock_print.assert_any_call("Pull request updated successfully.")
 
 
-def test_update_pull_request_failure(mock_requests_patch, mock_merge_requests):
+def test_update_pull_request_github_exception(mock_pull_request, mock_merge_requests, mock_config_manager):
     """
-    Test that update_pull_request handles failures appropriately.
+    Test that update_pull_request handles GithubException appropriately.
     """
     # Arrange
-    github_api = Github_api()
-    github_api.repo_owner = "owner"
-    github_api.repo_name = "repo"
-    github_api.get_api_key = MagicMock(return_value="fake_token")
+    from github import GithubException
 
-    mock_response = Mock()
-    mock_response.status_code = 400
-    mock_response.json.return_value = {"message": "Bad Request"}
-    mock_requests_patch.return_value = mock_response
+    github_api = Github_api()
+    mock_pull_request.edit.side_effect = GithubException(400, {"message": "Bad Request"})
 
     # Act
     with patch('builtins.print') as mock_print:
-        github_api.update_pull_request(pr_number=1, title="Title", body="Body")
+        github_api.update_pull_request(mock_pull_request, "Title", "Body")
 
     # Assert
-    mock_requests_patch.assert_called_once()
     mock_print.assert_any_call("Failed to update pull request: 400")
     mock_print.assert_any_call("Error message: {'message': 'Bad Request'}")
+
+
+def test_update_pull_request_general_exception(mock_pull_request, mock_merge_requests, mock_config_manager):
+    """
+    Test that update_pull_request handles general exceptions appropriately.
+    """
+    # Arrange
+    github_api = Github_api()
+    mock_pull_request.edit.side_effect = Exception("Unexpected error")
+
+    # Act
+    with patch('builtins.print') as mock_print:
+        github_api.update_pull_request(mock_pull_request, "Title", "Body")
+
+    # Assert
+    mock_print.assert_any_call("Unexpected error: Unexpected error")
 
 # --------------------------
 # get_api_key Integration Tests
 # --------------------------
 
 
-def test_create_pull_request_without_api_key(mock_requests_post, mock_subprocess_run_success, mock_merge_requests, mock_config_manager):
+def test_create_pull_request_without_api_key(mock_merge_requests, mock_config_manager):
     """
-    Test that create_pull_request raises ValueError when GITHUB_TOKEN is not set.
+    Test that create_pull_request prints error when GITHUB_TOKEN is not set.
     """
     # Arrange
     github_api = Github_api()
-
     github_api.get_current_branch = Mock(return_value="feature-branch")
 
     with patch.dict(os.environ, {}, clear=True):
         # Act & Assert
-        with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
+        with patch('builtins.print') as mock_print:
             github_api.create_pull_request("Title", "Body")
 
-# --------------------------
-# get_existing_pr_info Integration Tests
-# --------------------------
+        # Check that the ValueError message is printed as an unexpected error
+        mock_print.assert_any_call(
+            "Unexpected error: GITHUB_TOKEN is not set. Please set it in your environment variables.")
 
 
-def test_get_existing_pr_info_no_api_key(mock_requests_get):
+def test_get_existing_pr_no_api_key(mock_merge_requests, mock_config_manager):
     """
-    Test that get_existing_pr_info raises ValueError when GITHUB_TOKEN is not set.
+    Test that get_existing_pr raises ValueError when GITHUB_TOKEN is not set.
     """
     # Arrange
     github_api = Github_api()
@@ -523,22 +491,15 @@ def test_get_existing_pr_info_no_api_key(mock_requests_get):
         with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
             github_api.get_existing_pr()
 
-# --------------------------
-# update_pull_request Integration Tests
-# --------------------------
 
-
-def test_update_pull_request_no_api_key(mock_requests_patch):
+def test_github_property_no_api_key(mock_merge_requests, mock_config_manager):
     """
-    Test that update_pull_request raises ValueError when GITHUB_TOKEN is not set.
+    Test that accessing github property raises ValueError when GITHUB_TOKEN is not set.
     """
     # Arrange
     github_api = Github_api()
 
-    # Act & Assert
     with patch.dict(os.environ, {}, clear=True):
+        # Act & Assert
         with pytest.raises(ValueError, match="GITHUB_TOKEN is not set. Please set it in your environment variables."):
-            github_api.update_pull_request(
-                pr_number=1,
-                title="Title",
-                body="Body")
+            _ = github_api.github

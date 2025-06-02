@@ -23,10 +23,6 @@ class Main:
         self.Prompt = Prompts()
         self.DisplayChoices = DisplayChoices()
 
-        # Remove eager initialization of API clients
-        # self.Gitlab = Gitlab_api()
-        # self.Github = Github_api()
-
         # Version
         if attr_is_defined(self.args, 'version') and self.args.version is True:
             print(f"v{get_package_version(get_app_name())}")
@@ -233,6 +229,7 @@ class Main:
         git_diffs = self.Commits.get_diffs()
 
         system_prompt = self.Prompt.build_commit_message_system_prompt()
+        print(f"system_prompt: {system_prompt}")
 
         try:
             selected_commit = self.DisplayChoices.render_choices_with_try_again(
