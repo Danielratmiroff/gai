@@ -24,9 +24,8 @@ class Prompts:
 
     def build_enter_a_suggestion_prompt(self) -> str:
         return """
-            Previous attempts weren't satisfactory. Please try again while ALSO addressing the user's concerns and suggestion.
-            _MUST_ NOT_ include irrelevant information or personal comments or opinions
             _MUST_ follow the instructions provided as in the first request.
+            Previous attempts weren't satisfactory. Please try again while _PRIORITIZING_ addressing the user's suggestion.
         """
 
     def build_commit_message_system_prompt(self) -> str:
