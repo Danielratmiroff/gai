@@ -1,6 +1,6 @@
 assignee_id: 12345
 gitlab_assignee_id: 10437754
-interface: huggingface
+interface: google
 max_tokens: 8000
 model: llama-3.2-8b-instant
 new_key: new_value

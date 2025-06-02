@@ -1,8 +1,5 @@
 import subprocess
-from typing import Callable, Dict, List
-
-from gai_tool.src.prompts import Prompts
-from gai_tool.src.utils import create_system_message, create_user_message
+from typing import Dict, List
 
 
 class Merge_requests:
@@ -25,19 +22,6 @@ class Merge_requests:
         """
         cls._instance = cls(remote_name)
         return cls._instance
-
-    def get_ticket_identifier(self, branch_name: str, ai_client: Callable[[str, str], str]) -> str:
-        prompt = Prompts().build_ticket_identifier_prompt()
-
-        messages: List[Dict[str, str]] = [
-            create_system_message(prompt),
-            create_user_message(branch_name)
-        ]
-
-        response = ai_client(
-            user_message=messages.copy(),
-        )
-        return None if response == "None" else response
 
     def get_repo_owner_from_remote_url(self) -> str:
         """

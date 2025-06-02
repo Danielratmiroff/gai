@@ -1,4 +1,4 @@
-from gai_tool.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS, GEMINI_MODELS
+from gai_tool.src import DisplayChoices, Commits, Prompts, Merge_requests, ConfigManager, get_app_name, get_attr_or_default, get_current_branch, push_changes, get_package_version, attr_is_defined, GROQ_MODELS, HUGGING_FACE_MODELS, DEFAULT_CONFIG, OLLAMA_MODELS, GEMINI_MODELS, get_ticket_identifier
 from gai_tool.api import GroqClient, Gitlab_api, Github_api, HuggingClient, OllamaClient, GeminiClient
 from gai_tool.src.utils import create_system_message, create_user_message
 import argparse
@@ -186,7 +186,7 @@ class Main:
             return
 
         # Get ticket identifier
-        ticket_id = mr.get_ticket_identifier(current_branch, self.ai_client)
+        ticket_id = get_ticket_identifier(current_branch, self.ai_client)
         if ticket_id:
             selected_title = f"{ticket_id} - {selected_title}"
 
@@ -241,6 +241,12 @@ class Main:
         except Exception as e:
             print(f"Exiting... {e}")
             return
+
+        # Get ticket identifier and prepend to commit message
+        current_branch = get_current_branch()
+        ticket_id = get_ticket_identifier(current_branch, self.ai_client)
+        if ticket_id:
+            selected_commit = f"{ticket_id} - {selected_commit}"
 
         self.Commits.commit_changes(selected_commit)
 
