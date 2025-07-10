@@ -34,10 +34,10 @@ class GeminiClient:
             max_output_tokens: Maximum number of tokens to generate
             callback_manager: Optional callback manager for logging and monitoring
         """
-        self.api_key = os.getenv("GOOGLE_API_KEY")
+        self.api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
         if not self.api_key:
             raise ValueError(
-                "Google API key must be provided through the GOOGLE_API_KEY environment variable"
+                "Gemini API key must be provided through the GEMINI_API_KEY or GOOGLE_API_KEY environment variable"
             )
 
         self.llm = ChatGoogleGenerativeAI(

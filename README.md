@@ -4,16 +4,16 @@
 
 # Gai is a CLI Automation Tool for Git 🚀
 
-command-line application that automates git commit messages and merge requests using AI. 
+command-line application that automates git commit messages and merge requests using AI.
 
 ![Demo](resources/video_demo.gif)
 
 ## ✨ Features
 
--  Generate commit messages based on code diffs.
--  Create merge requests with AI-generated titles and descriptions.
--  Works with both GitHub and GitLab.
--  Supports Groq and Hugging Face AI interfaces.
+- Generate commit messages based on code diffs.
+- Create merge requests with AI-generated titles and descriptions.
+- Works with both GitHub and GitLab.
+- Supports Groq and Hugging Face AI interfaces.
 
 ## 📦 Installation
 
@@ -38,9 +38,8 @@ Supported interfaces:
 
 - Groq (GROQ_API_KEY)
 - Hugging Face (HUGGINGFACE_API_TOKEN)
-- Gemini (GOOGLE_API_KEY)
+- Gemini (GEMINI_API_KEY or GOOGLE_API_KEY) -- Gemini takes precedence when both are set.
 - Ollama (OLLAMA_API_KEY)
-
 
 2. **Navigate to your git repository**:
 
@@ -49,6 +48,9 @@ Supported interfaces:
    ```
 
    ```
+
+   ```
+
 3. **Start Using gai-tool**:
 
    ```bash
@@ -95,6 +97,7 @@ Options:
 - `-i`, `--interface`: Specify and override the AI client API to use (`groq` or `huggingface`).
 
 **Example**:
+
 ```bash
 # Simply
 gai commit -a
@@ -119,6 +122,7 @@ Options:
 - `-i`, `--interface`: Specify and override the AI client API to use (`groq` or `huggingface`).
 
 **Example**:
+
 ```bash
 # Simply
 gai merge -p
@@ -172,8 +176,7 @@ Build gai-tool from source:
 
 ## 🤝 Contributing
 
-Contributions are welcome! 
-
+Contributions are welcome!
 
 ## 📄 License
 
