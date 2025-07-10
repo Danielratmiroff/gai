@@ -13,7 +13,6 @@ command-line application that automates git commit messages and merge requests u
 - Generate commit messages based on code diffs.
 - Create merge requests with AI-generated titles and descriptions.
 - Works with both GitHub and GitLab.
-- Supports Groq and Hugging Face AI interfaces.
 
 ## 📦 Installation
 
@@ -45,10 +44,6 @@ Supported interfaces:
 
    ```bash
    cd /path/to/your/git/repo
-   ```
-
-   ```
-
    ```
 
 3. **Start Using gai-tool**:
@@ -127,7 +122,7 @@ Options:
 # Simply
 gai merge -p
 # Or
-gai merge origin -p -tb develop -i groq
+gai merge origin --push --target-branch develop -interface groq
 ```
 
 ## 🛠 Build Instructions
