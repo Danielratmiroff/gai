@@ -94,6 +94,7 @@ This module manages the application's configuration.
   - Loads and saves configuration from a local `.gai.yaml` file or a global configuration file.
   - Provides default configurations for the application.
   - Manages different AI models for providers like Groq, Hugging Face, Ollama, and Gemini.
+  - Handles the creation of `gai-rules.md` for custom AI instructions.
 
 ### `prompts.py`
 
@@ -110,6 +111,7 @@ This module contains all the system prompts used to guide the AI's behavior.
 This module provides a collection of utility functions used throughout the application.
 
 - **Helper functions:**
+  - `read_gai_rules()`: Reads the `gai-rules.md` file from the project or home directory, falling back to default rules. This is used by `prompts.py` to inject custom instructions into the AI prompts.
   - `get_current_branch()`: Retrieves the current Git branch name.
   - `push_changes()`: Pushes local changes to a remote repository.
   - `get_package_version()`: Gets the version of the application package.
