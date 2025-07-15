@@ -1,6 +1,5 @@
 import tomllib
 from typing import List
-from appdirs import user_config_dir
 from pathlib import Path
 import yaml
 from dataclasses import dataclass
@@ -13,119 +12,124 @@ class Models:
 
 
 GROQ_MODELS: List[Models] = [
-    Models(
-        model_name="llama-3.3-70b-versatile",
-        max_tokens=8000
-    )
-    # Models(
-    #     model_name="llama-3.1-8b-instruct",
-    #     max_tokens=8000
-    # )
+    Models(model_name="llama-3.3-70b-versatile", max_tokens=8000)
 ]
 
 
 HUGGING_FACE_MODELS: List[Models] = [
-    Models(
-        model_name="Qwen/Qwen3-32B",
-        max_tokens=32760
-    ),
-    # Models(
-    #     model_name="Qwen/QwQ-32B-Preview",
-    #     max_tokens=16000
-    # ),
-    # Models(
-    #     model_name="llama-3.1-8b-instruct",
-    #     max_tokens=8000
-    # )
+    Models(model_name="Qwen/Qwen3-32B", max_tokens=32760),
 ]
 
 OLLAMA_MODELS: List[Models] = [
-    Models(
-        model_name="deepseek-r1:1.5b",
-        max_tokens=8000
-    ),
-    Models(
-        model_name="deepseek-r1:7b",
-        max_tokens=8000
-    ),
-    Models(
-        model_name="deepseek-r1:8b",
-        max_tokens=8000
-    ),
-    Models(
-        model_name="deepseek-r1:14b",
-        max_tokens=8000
-    ),
-    Models(
-        model_name="phi4",
-        max_tokens=8000
-    ),
+    Models(model_name="deepseek-r1:1.5b", max_tokens=8000),
+    Models(model_name="deepseek-r1:7b", max_tokens=8000),
+    Models(model_name="deepseek-r1:8b", max_tokens=8000),
+    Models(model_name="deepseek-r1:14b", max_tokens=8000),
+    Models(model_name="phi4", max_tokens=8000),
 ]
 
 GEMINI_MODELS: List[Models] = [
-    Models(
-        model_name="gemini-2.0-flash",
-        max_tokens=8000
-    )
+    Models(model_name="gemini-2.5-flash", max_tokens=8000)
 ]
 
 
 DEFAULT_CONFIG = {
     'interface': 'huggingface',
-    # 'max_tokens': 32760,
-    'temperature': 1,
+    'temperature': 0.7,
     'target_branch': 'master',
     'assignee_id': 10437754,
-    # 'model': HUGGING_FACE_MODELS[0].model_name,
 }
 
 
+DEFAULT_RULES = """
+# Gai Rules
+
+## Commit Messages 
+
+- Keep the commit message summary under 72 characters.
+- Use the imperative mood (e.g., "Fix issue where...", "Add feature to...", "Update dependency for...").
+- Focus on the "what" and "why," not the "how."
+
+## Pull Request Titles
+
+- Keep the pull request title concise, under 72 characters.
+- Use the imperative mood (e.g., "Add user authentication system", "Fix data processing bug").
+- Summarize the essence of the combined changes in clear and concise language.
+
+## Merge Descriptions
+
+- Be very concise and to the point.
+- Summarize the changes in bullet points.
+- Focus on the overall purpose and impact of the merge.
+"""
+
+CONFIG_FILE = "config.yaml"
+RULES_FILE = "gai-rules.md"
+CONFIG_FOLDER = ".gai"
+
+
 class ConfigManager:
+    """Manage configuration for the *gai* tool.
+      Precedence order: local > home > default."""
+
     def __init__(
         self,
         app_name: str,
-        app_author: str = None,
-        config_filename: str = "config.yaml"
-    ):
+        app_author: str | None = None,
+        config_filename: str = CONFIG_FILE,
+    ) -> None:
 
-        # Local config path
-        self.local_config_path = Path.cwd() / ".gai.yaml"
+        # Project-level folder (./.gai)
+        self.tool_folder = Path.cwd() / CONFIG_FOLDER
+        self.local_config_path = self.tool_folder / config_filename
 
-        # Global config path
-        self.config_dir = Path(user_config_dir(app_name, app_author))
-        self.config_dir.mkdir(parents=True, exist_ok=True)
+        # Home-level folder (~/.gai)
+        self.home_tool_folder = Path.home() / CONFIG_FOLDER
+        self.home_config_path = self.home_tool_folder / config_filename
 
-        # eg: /home/username/.config/gai/config.yaml
-        self.config_path = self.config_dir / config_filename
         self.config = self.load_config()
 
-    def load_config(self):
-        # Try to load local config first
-        if self.local_config_path.exists():
-            with self.local_config_path.open('r') as f:
-                local_config = yaml.safe_load(f)
-                if local_config is not None:
-                    return local_config
+    # ------------------------------------------------------------------
+    # Configuration loading helpers
+    # ------------------------------------------------------------------
+    def _read_yaml(self, path: Path) -> dict:
+        if not path.exists():
+            return {}
+        with path.open("r") as f:
+            data = yaml.safe_load(f)
+            return data or {}
 
-        # Fall back to global config
-        if not self.config_path.exists():
-            self.create_default_config()
+    def load_config(self) -> dict:
+        """Load the configuration following the precedence rules.
+        Local > Home > Default. No merging."""
 
-        with self.config_path.open('r') as f:
-            return yaml.safe_load(f)
+        local_config = self._read_yaml(self.local_config_path)
+        if local_config:
+            return local_config
 
-    def create_default_config(self):
-        default_config = DEFAULT_CONFIG.copy()
+        home_config = self._read_yaml(self.home_config_path)
+        if home_config:
+            return home_config
 
-        with self.config_path.open('w') as f:
-            yaml.dump(default_config, f)
-        print(f"Created default config at {self.config_path}")
+        return DEFAULT_CONFIG.copy()
 
-    def save_config(self):
-        config_path = self.local_config_path if self.local_config_path.exists() else self.config_path
-        with config_path.open('w') as f:
+    def create_default_config(self) -> None:
+        """Create a default * project * configuration file."""
+        self.tool_folder.mkdir(parents=True, exist_ok=True)
+
+        with self.local_config_path.open("w") as f:
+            yaml.dump(DEFAULT_CONFIG, f)
+        print(f"Created default config at {self.local_config_path}")
+
+    def save_config(self) -> None:
+        """Persist the current configuration to the * project * ``.gai`` folder."""
+
+        # Ensure folder exists
+        self.tool_folder.mkdir(parents=True, exist_ok=True)
+
+        with self.local_config_path.open("w") as f:
             yaml.dump(self.config, f)
-        print(f"Saved config to {config_path}")
+        print(f"Saved config to {self.local_config_path}")
 
     def update_config(self, key, value):
         self.config[key] = value
@@ -140,10 +144,19 @@ class ConfigManager:
             print(f"Local config already exists at {self.local_config_path}")
             return False
 
-        # Create local config with current settings
+        self.tool_folder.mkdir(exist_ok=True)
+
         with self.local_config_path.open('w') as f:
             yaml.dump(self.config, f)
         print(f"Created local config at {self.local_config_path}")
+
+        # Create rules file
+        rules_path = self.tool_folder / RULES_FILE
+        if not rules_path.exists():
+            with rules_path.open('w') as f:
+                f.write(DEFAULT_RULES)
+            print(f"Created rules file at {rules_path}")
+
         return True
 
 

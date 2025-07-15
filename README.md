@@ -73,6 +73,12 @@ temperature: 0.7
 target_branch: master
 ```
 
+### Customizing AI Behavior
+
+You can customize the AI's behavior by editing the `gai-rules.md` file, which is created when you run `gai init`. These rules are injected into the AI's system prompt, allowing you to guide its output for commit messages and merge requests.
+
+For a detailed guide, see [Customizing AI Behavior with Rules](./docs/customizing-ai-rules.md).
+
 ## 📖 Usage
 
 gai-tool provides two main commands: `commit` and `merge`.

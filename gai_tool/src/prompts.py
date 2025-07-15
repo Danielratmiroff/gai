@@ -1,7 +1,11 @@
+from gai_tool.src.utils import read_gai_rules
 COMMITS_MESSAGES = ""
 
 
 class Prompts:
+    def __init__(self):
+        self.rules = read_gai_rules()
+
     def build_ticket_identifier_prompt(self) -> str:
         return """
         <instructions>
@@ -29,8 +33,7 @@ class Prompts:
         """
 
     def build_commit_message_system_prompt(self) -> str:
-        return """<instructions>
-            You are an expert git commit message generator.
+        return f"""<instructions>
             You will be provided with git diffs from a local repository.
             Your task is to analyze these diffs thoroughly—including all changes,
             file names, and relevant context—to generate up to three concise and
@@ -38,28 +41,21 @@ class Prompts:
 
             Requirements:
 
+            {self.rules}
+
             Analyze All Changes:
             Carefully read every addition, deletion, and modification in the diffs
             Understand the purpose and impact of the changes
             Take note of any patterns or themes across multiple files
 
-            Consider File Names and Paths:
-            Use file names and their directory paths to glean additional context
-            Recognize if changes are isolated to a specific module, feature, or component
-
-            Generate Human-Meaningful Commit Messages:
-            Summarize the essence of the changes in clear and concise language
-            Focus on the "what" and "why," not the "how."
-            Use the imperative mood (e.g., "Fix issue where...", "Add feature to...", "Update dependency for...").
+            Best Practices:
+            - Avoid technical jargon unless it's necessary for clarity
+            - _MUST_ NOT include irrelevant information or personal comments or opinions
+            - Summarize the essence of the changes in clear and concise language
 
             Provide Up to Three Options:
             Offer a maximum of three distinct commit message options
             Ensure each option captures different aspects or perspectives if applicable
-
-            Follow Best Practices:
-            _MUST_ Keep the commit message summary under 72 characters
-            Avoid technical jargon unless it's necessary for clarity
-            _MUST_ NOT include irrelevant information or personal comments or opinions
 
             Formatting:
             _MUST_ Reply the commit messages as an array of messages in the following format: ["Message 1", "Message 2", "Message 3"]
@@ -76,24 +72,23 @@ class Prompts:
           """
 
     def build_merge_title_system_prompt(self) -> str:
-        return """<instructions>
+        return f"""<instructions>
 
             You will be provided with a list of git commits from a local branch.
             Your task is to analyze all the changes represented by these commits thoroughly—including code changes,
             commit messages, and any relevant context—to generate up to three concise and
             meaningful pull request title options that accurately summarize the overall changes.
 
+
             Requirements:
+
+            {self.rules}
+
 
             Analyze All Changes:
             Read through all the commit messages and, if available, the associated code changes.
             Understand the cumulative purpose and impact of the changes.
             Identify overarching themes or significant modifications that span multiple commits.
-
-            Generate a Human-Understandable and Summarized Pull Request Title:
-            Summarize the essence of the combined changes in clear and concise language.
-            Focus on the overall purpose and impact of the pull request.
-            Use the imperative mood(e.g., "Add user authentication system", "Fix data processing bug").
 
             Provide Up to Three Options:
             Offer a maximum of three distinct pull request title options.
@@ -119,7 +114,7 @@ class Prompts:
           """
 
     def build_merge_description_system_prompt(self) -> str:
-        return """<instructions>
+        return f"""<instructions>
             You are an expert git merge description generator.
             You will be provided with a list of git commits from a local branch.
             Your task is to analyze all the changes represented by these commits thoroughly—including code changes,
@@ -128,14 +123,12 @@ class Prompts:
 
             Requirements:
 
+            {self.rules}
+
             Analyze All Changes:
             Read through all the commit messages and, if available, the associated code changes.
             Understand the cumulative purpose and impact of the changes.
             Identify overarching themes or significant modifications that span multiple commits.
-
-            Generate a Human-Understandable and Summarized Merge Description:
-            Summarize the essence of the combined changes in clear and concise language.
-            Focus on the overall purpose and impact of the merge.
 
             Formatting:
             _MUST_ be VERY CONCISE and to the point. Summarize the changes in bullet points.
