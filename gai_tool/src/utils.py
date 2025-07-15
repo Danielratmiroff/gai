@@ -1,10 +1,23 @@
 import os
+import tomllib
 from typing import Dict, List, Callable
 from colorama import Fore, Style
 from importlib.metadata import version, PackageNotFoundError
-
+from pathlib import Path
 import subprocess
 
+TOOL_FOLDER = ".gai"
+RULES_FILE = "gai-rules.md"
+
+def read_gai_rules() -> str:
+    """
+    Read the rules from the gai-rules.md file.
+    """
+    rules_path = Path.cwd() / TOOL_FOLDER / RULES_FILE
+    if not rules_path.exists():
+        return ""
+    with rules_path.open('r') as f:
+        return f.read()
 
 def attr_is_defined(args, attr: str) -> bool:
     """
