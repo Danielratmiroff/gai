@@ -17,7 +17,7 @@ GROQ_MODELS: List[Models] = [
 
 
 HUGGING_FACE_MODELS: List[Models] = [
-    Models(model_name="Qwen/Qwen3-32B", max_tokens=32760),
+    Models(model_name="Qwen/Qwen3-8B", max_tokens=32760),
 ]
 
 OLLAMA_MODELS: List[Models] = [
@@ -29,7 +29,7 @@ OLLAMA_MODELS: List[Models] = [
 ]
 
 GEMINI_MODELS: List[Models] = [
-    Models(model_name="gemini-2.5-flash", max_tokens=8000)
+    Models(model_name="gemini-2.0-flash", max_tokens=8000)
 ]
 
 
